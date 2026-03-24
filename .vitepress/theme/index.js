@@ -1,6 +1,6 @@
 import DefaultTheme from 'vitepress/theme'
 import Layout from './Layout.vue'
-import SkillChart from './components/SkillChart.vue'
+import { defineAsyncComponent } from 'vue'
 import VisitorTracker from './components/VisitorTracker.vue'
 import VisitorAdmin from './components/VisitorAdmin.vue'
 import './custom.css'
@@ -35,7 +35,7 @@ export default {
   extends: DefaultTheme,
   Layout,
   enhanceApp({ app, router }) {
-    app.component('SkillChart', SkillChart)
+    app.component('SkillChart', defineAsyncComponent(() => import('./components/SkillChart.vue')))
     app.component('VisitorTracker', VisitorTracker)
     app.component('VisitorAdmin', VisitorAdmin)
     if (typeof window !== 'undefined') {

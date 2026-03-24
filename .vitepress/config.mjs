@@ -19,13 +19,9 @@ export default defineConfig({
         text: '技能星图',
         items: [
           { text: '技能雷达图', link: '/pages/skill' },
-          {
-            text: '个人项目与工具',
-            items: [
-              { text: '工具列表', link: '/pages/skill-tools' },
-              { text: 'SVG 转换工具', link: '/pages/skill-tools-svg' },
-            ],
-          },
+          /* 单层下拉，避免嵌套菜单在部分 CDN/缓存下不更新或交互异常 */
+          { text: '个人项目 · 工具列表', link: '/pages/skill-tools' },
+          { text: '个人项目 · SVG 转换', link: '/pages/skill-tools-svg' },
         ],
       },
       { text: '生活记录', link: '/pages/life' },
@@ -42,13 +38,9 @@ export default defineConfig({
         text: '技能星图',
         items: [
           { text: '技能雷达图', link: '/pages/skill' },
-          {
-            text: '个人项目与工具',
-            items: [
-              { text: '工具列表', link: '/pages/skill-tools' },
-              { text: 'SVG 转换工具', link: '/pages/skill-tools-svg' },
-            ],
-          },
+          /* 单层下拉，避免嵌套菜单在部分 CDN/缓存下不更新或交互异常 */
+          { text: '个人项目 · 工具列表', link: '/pages/skill-tools' },
+          { text: '个人项目 · SVG 转换', link: '/pages/skill-tools-svg' },
         ],
       },
       { text: '生活记录', link: '/pages/life' },

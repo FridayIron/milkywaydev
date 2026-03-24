@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useData } from 'vitepress'
-import * as echarts from 'echarts'
 
 // 默认配置（当 frontmatter 未定义时使用）
 const DEFAULT_INDICATOR = [
@@ -17,6 +16,7 @@ const DEFAULT_VALUE = [9, 9, 8, 6, 7, 5]
 const { page } = useData()
 const chartRef = ref(null)
 let chartInstance = null
+let echartsModule = null
 
 const chartOption = computed(() => {
   const frontmatter = page.value?.frontmatter || {}
@@ -51,10 +51,12 @@ const chartOption = computed(() => {
 })
 
 onMounted(() => {
-  if (chartRef.value) {
-    chartInstance = echarts.init(chartRef.value)
+  if (!chartRef.value) return
+  import('echarts').then((mod) => {
+    echartsModule = mod
+    chartInstance = echartsModule.init(chartRef.value)
     chartInstance.setOption(chartOption.value)
-  }
+  })
 })
 
 watch(chartOption, (opt) => {

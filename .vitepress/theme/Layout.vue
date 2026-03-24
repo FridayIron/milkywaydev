@@ -43,6 +43,13 @@ const VPLayout = DefaultTheme.Layout
   pointer-events: none;
 }
 
+@media (max-width: 768px) {
+  .layout-home .cosmic-wrapper {
+    height: 28vh;
+    min-height: 180px;
+  }
+}
+
 .layout-home .layout-content {
   position: relative;
   z-index: 9999997;
