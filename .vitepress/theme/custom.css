@@ -1,0 +1,226 @@
+/* 防止页面切换时蓝色 # (header-anchor) 短暂闪现 */
+/* 路由切换后 350ms 内强制隐藏 */
+html.vp-suppress-anchor .vp-doc .header-anchor {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+/* 平时：仅悬停时显示，聚焦时隐藏（避免切换时焦点引起闪现） */
+.vp-doc h1 .header-anchor:focus,
+.vp-doc h2 .header-anchor:focus,
+.vp-doc h3 .header-anchor:focus,
+.vp-doc h4 .header-anchor:focus,
+.vp-doc h5 .header-anchor:focus,
+.vp-doc h6 .header-anchor:focus {
+  opacity: 0 !important;
+}
+.vp-doc h1:hover .header-anchor,
+.vp-doc h2:hover .header-anchor,
+.vp-doc h3:hover .header-anchor,
+.vp-doc h4:hover .header-anchor,
+.vp-doc h5:hover .header-anchor,
+.vp-doc h6:hover .header-anchor {
+  opacity: 1 !important;
+}
+
+/* 自定义动画：渐入上滑 */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.vp-doc :not(.skill-chart-container):not(.header-anchor) {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* 技能星图容器 */
+.skill-chart-container {
+  min-height: 400px;
+  margin: 1.5rem 0;
+}
+
+/* ========== 首页宇宙风格 - 银河系感，背景稍亮 ========== */
+.layout-home {
+  background: #0f0f28 !important;
+  min-height: 100vh;
+}
+
+.layout-home .VPNav,
+.layout-home .VPHome,
+.layout-home .VPHome .container,
+.layout-home .VPHero,
+.layout-home .VPFeatures,
+.layout-home .VPFeature,
+.layout-home .VPSidebar,
+.layout-home .VPDoc {
+  background: transparent !important;
+}
+
+.layout-home .VPNav {
+  background: rgba(15, 12, 40, 0.88) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.layout-home .VPNavBar .link {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.layout-home .VPNavBar .link:hover {
+  color: #74c0fc !important;
+}
+
+/* 首页导航下拉菜单 - 提高对比度 */
+html.vp-home-cosmic .VPFlyout .button .text,
+html.vp-home-cosmic .VPNavBarMenuGroup .text {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
+html.vp-home-cosmic .VPFlyout:hover .text,
+html.vp-home-cosmic .VPNavBarMenuGroup:hover .text {
+  color: #74c0fc !important;
+}
+
+/* 下拉面板背景与文字 - 更亮更清晰 */
+html.vp-home-cosmic .VPMenu {
+  background-color: rgba(30, 38, 62, 0.98) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+html.vp-home-cosmic .VPMenu .label,
+html.vp-home-cosmic .VPMenu .title,
+html.vp-home-cosmic .VPMenu .link,
+html.vp-home-cosmic .VPMenu a {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.vp-home-cosmic .VPMenu .link:hover,
+html.vp-home-cosmic .VPMenu a:hover {
+  color: #74c0fc !important;
+  background-color: rgba(116, 192, 252, 0.12) !important;
+}
+
+.layout-home .VPHome .container {
+  padding-bottom: 0;
+}
+
+.layout-home .VPFeatures {
+  position: relative;
+  z-index: 1;
+  margin-top: 0;
+  padding: 3rem 1.5rem 4rem;
+  background: linear-gradient(to bottom, rgba(15, 12, 35, 0.3), #0f0f28) !important;
+  border-radius: 24px 24px 0 0;
+}
+
+.layout-home .VPFeature {
+  background: rgba(25, 30, 55, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+/* 关键：Hero 区域背景层要完全透明，让 canvas 画布透出来 */
+.layout-home .VPHero,
+.layout-home .VPHome,
+.layout-home .VPHome .container {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.layout-home .VPHero::before,
+.layout-home .VPHero::after {
+  background: transparent !important;
+  opacity: 0 !important;
+}
+
+.layout-home .VPFeature .title {
+  color: rgba(255, 255, 255, 1) !important;
+}
+
+.layout-home .VPFeature .details {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* 首页时强制全局深色背景 */
+html.vp-home-cosmic,
+html.vp-home-cosmic body,
+html.vp-home-cosmic .VPNav,
+html.vp-home-cosmic .VPContent,
+html.vp-home-cosmic .VPDoc {
+  background: #0f0f28 !important;
+}
+
+html.vp-home-cosmic .VPContent.has-sidebar {
+  background: #0f0f28 !important;
+}
+
+/* 首页侧边栏、移动端菜单深色 */
+html.vp-home-cosmic .VPSidebar,
+html.vp-home-cosmic .VPSidebarGroup,
+html.vp-home-cosmic .VPNavScreen {
+  background: rgba(15, 12, 35, 0.98) !important;
+}
+
+/* ========== 非首页：浅色模式时用浅色背景，深色模式时用 VitePress 默认深色 ========== */
+/* 仅在非 dark 时应用浅色，深色模式完全交给 VitePress 的 .dark 变量 */
+html.vp-page-light:not(.dark) {
+  --vp-c-bg: #f6f8fc !important;
+  --vp-c-bg-alt: #eef1f8 !important;
+  --vp-c-bg-elv: #ffffff !important;
+  --vp-c-bg-soft: #f0f3fa !important;
+  --vp-nav-bg-color: #f6f8fc !important;
+  --vp-nav-screen-bg-color: #f6f8fc !important;
+  --vp-sidebar-bg-color: #fafbfd !important;
+}
+
+html.vp-page-light:not(.dark),
+html.vp-page-light:not(.dark) body,
+html.vp-page-light:not(.dark) .VPContent,
+html.vp-page-light:not(.dark) .VPDoc,
+html.vp-page-light:not(.dark) .VPNav {
+  background: #f6f8fc !important;
+}
+
+html.vp-page-light:not(.dark) .VPContent.has-sidebar {
+  background: #f6f8fc !important;
+}
+
+html.vp-page-light:not(.dark) .VPSidebar,
+html.vp-page-light:not(.dark) .VPSidebarGroup,
+html.vp-page-light:not(.dark) .VPNavScreen {
+  background: #fafbfd !important;
+}
+
+/* wrapper 类：同样仅在浅色模式时生效 */
+.layout-page-light {
+  min-height: 100vh;
+}
+html:not(.dark) .layout-page-light {
+  background: #f6f8fc !important;
+  --vp-c-bg: #f6f8fc !important;
+  --vp-c-bg-alt: #eef1f8 !important;
+  --vp-c-bg-elv: #ffffff !important;
+  --vp-c-bg-soft: #f0f3fa !important;
+  --vp-nav-bg-color: #f6f8fc !important;
+  --vp-nav-screen-bg-color: #f6f8fc !important;
+  --vp-sidebar-bg-color: #fafbfd !important;
+}
+
+html:not(.dark) .layout-page-light .VPContent,
+html:not(.dark) .layout-page-light .VPDoc,
+html:not(.dark) .layout-page-light .VPNav,
+html:not(.dark) .layout-page-light .VPSidebar,
+html:not(.dark) .layout-page-light .VPSidebarGroup,
+html:not(.dark) .layout-page-light .VPNavScreen {
+  background: #f6f8fc !important;
+}
+
+html:not(.dark) .layout-page-light .VPContent.has-sidebar {
+  background: #f6f8fc !important;
+}
+
+html:not(.dark) .layout-page-light .VPSidebar,
+html:not(.dark) .layout-page-light .VPSidebarGroup,
+html:not(.dark) .layout-page-light .VPNavScreen {
+  background: #fafbfd !important;
+}

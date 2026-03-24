@@ -1,0 +1,6 @@
+node_modules
+visitor-api/node_modules
+dist
+.DS_Store
+*.local
+.vitepress/cache

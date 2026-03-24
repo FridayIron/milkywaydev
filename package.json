@@ -1,0 +1,17 @@
+{
+  "name": "embedded-blog",
+  "version": "1.0.0",
+  "description": "嵌入式工程师个人技术博客",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview",
+    "deploy": "npm run build && node scripts/copy-to-docs.cjs",
+    "new:blog": "node scripts/new-blog.cjs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.6.0",
+    "echarts": "^5.4.3"
+  }
+}

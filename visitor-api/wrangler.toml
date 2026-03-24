@@ -1,0 +1,10 @@
+name = "visitor-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+kv_namespaces = [
+  { binding = "VISITS", id = "REPLACE_WITH_YOUR_KV_ID" }
+]
+
+[vars]
+# ADMIN_KEY 请通过 wrangler secret put ADMIN_KEY 设置，不要写在这里
