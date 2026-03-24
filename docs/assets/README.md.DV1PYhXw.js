@@ -14,7 +14,7 @@ import{_ as a,o as n,c as i,aj as e}from"./chunks/framework.DuzMo9U1.js";const k
 <span class="line"><span>│   ├── projects.md       # 项目经验</span></span>
 <span class="line"><span>│   ├── tech.md           # 技术栈</span></span>
 <span class="line"><span>│   ├── tools.md          # 工具链</span></span>
-<span class="line"><span>│   ├── interview.md      # 面试总结</span></span>
+<span class="line"><span>│   ├── interview.md      # 嵌入式基础小知识</span></span>
 <span class="line"><span>│   ├── skill.md          # 技能星图（含雷达图配置）</span></span>
 <span class="line"><span>│   └── life.md           # 生活记录</span></span>
 <span class="line"><span>├── public/               # 静态资源（图片、视频放这里）</span></span>

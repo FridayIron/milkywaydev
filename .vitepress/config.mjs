@@ -3,9 +3,14 @@ import { visitorApiUrl } from './visitor-api-url.js'
 
 export default defineConfig({
   title: '王桥 | 嵌入式工程师技术博客',
-  description: '工作经历 | 项目经验 | 技术积累 | 面试总结 | 个人创新',
+  description: '工作经历 | 项目经验 | 技术积累 | 嵌入式基础小知识 | 个人创新',
   base: '/',  // milkywaydev.cn 根目录
   ignoreDeadLinks: true,  // 忽略 localhost 等构建时不可达链接
+  // 关闭主题深浅色切换，避免 localStorage 与 SSR 不一致导致 Hydration mismatch
+  appearance: false,
+  router: {
+    prefetchLinks: true,
+  },
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
@@ -14,7 +19,7 @@ export default defineConfig({
       { text: '项目经验', link: '/pages/projects' },
       { text: '技术栈', link: '/pages/tech' },
       { text: '工具链', link: '/pages/tools' },
-      { text: '面试总结', link: '/pages/interview' },
+      { text: '嵌入式基础', link: '/pages/interview' },
       {
         text: '技能星图',
         items: [
@@ -33,7 +38,7 @@ export default defineConfig({
       { text: '项目经验', link: '/pages/projects' },
       { text: '技术栈', link: '/pages/tech' },
       { text: '工具链', link: '/pages/tools' },
-      { text: '面试总结', link: '/pages/interview' },
+      { text: '嵌入式基础', link: '/pages/interview' },
       {
         text: '技能星图',
         items: [

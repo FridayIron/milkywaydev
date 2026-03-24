@@ -29,7 +29,7 @@ npm run preview
 │   ├── projects.md       # 项目经验
 │   ├── tech.md           # 技术栈
 │   ├── tools.md          # 工具链
-│   ├── interview.md      # 面试总结
+│   ├── interview.md      # 嵌入式基础小知识
 │   ├── skill.md          # 技能星图（含雷达图配置）
 │   └── life.md           # 生活记录
 ├── public/               # 静态资源（图片、视频放这里）

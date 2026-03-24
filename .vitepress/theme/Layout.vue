@@ -18,9 +18,12 @@ const VPLayout = DefaultTheme.Layout
 <template>
   <div class="custom-layout" :class="{ 'layout-home': isHome, 'layout-page-light': !isHome }">
     <VisitorTracker />
-    <div v-if="isHome" class="cosmic-wrapper">
-      <CosmicBackground />
-    </div>
+    <!-- ClientOnly：避免 SSR 输出 canvas 与客户端首帧不一致导致 Hydration mismatch -->
+    <ClientOnly>
+      <div v-if="isHome" class="cosmic-wrapper">
+        <CosmicBackground />
+      </div>
+    </ClientOnly>
     <div class="layout-content" :class="{ 'layout-home-content': isHome }">
     <VPLayout>
       <template v-for="(_, name) in $slots" #[name]="slotData">

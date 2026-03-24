@@ -1,6 +1,7 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed, nextTick } from 'vue'
 import { useData } from 'vitepress'
+import * as echarts from 'echarts'
 
 // 默认配置（当 frontmatter 未定义时使用）
 const DEFAULT_INDICATOR = [
@@ -16,7 +17,6 @@ const DEFAULT_VALUE = [9, 9, 8, 6, 7, 5]
 const { page } = useData()
 const chartRef = ref(null)
 let chartInstance = null
-let echartsModule = null
 
 const chartOption = computed(() => {
   const frontmatter = page.value?.frontmatter || {}
@@ -50,20 +50,34 @@ const chartOption = computed(() => {
   }
 })
 
-onMounted(() => {
-  if (!chartRef.value) return
-  import('echarts').then((mod) => {
-    echartsModule = mod
-    chartInstance = echartsModule.init(chartRef.value)
-    chartInstance.setOption(chartOption.value)
-  })
+function bindResize() {
+  if (!chartInstance || typeof window === 'undefined') return
+  chartInstance.resize()
+}
+
+onMounted(async () => {
+  await nextTick()
+  const el = chartRef.value
+  if (!el || typeof window === 'undefined') return
+  chartInstance = echarts.init(el)
+  chartInstance.setOption(chartOption.value)
+  window.addEventListener('resize', bindResize)
 })
 
 watch(chartOption, (opt) => {
   if (chartInstance && opt) {
     chartInstance.setOption(opt)
+    nextTick(() => chartInstance?.resize())
   }
 }, { deep: true })
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', bindResize)
+  }
+  chartInstance?.dispose()
+  chartInstance = null
+})
 </script>
 
 <template>

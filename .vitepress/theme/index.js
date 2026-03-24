@@ -1,8 +1,9 @@
 import DefaultTheme from 'vitepress/theme'
 import Layout from './Layout.vue'
-import { defineAsyncComponent } from 'vue'
+import SkillChart from './components/SkillChart.vue'
 import VisitorTracker from './components/VisitorTracker.vue'
 import VisitorAdmin from './components/VisitorAdmin.vue'
+import { startPriorityPrefetch } from './prefetch-priority.js'
 import './custom.css'
 
 function applyPageTheme(path) {
@@ -35,7 +36,7 @@ export default {
   extends: DefaultTheme,
   Layout,
   enhanceApp({ app, router }) {
-    app.component('SkillChart', defineAsyncComponent(() => import('./components/SkillChart.vue')))
+    app.component('SkillChart', SkillChart)
     app.component('VisitorTracker', VisitorTracker)
     app.component('VisitorAdmin', VisitorAdmin)
     if (typeof window !== 'undefined') {
@@ -51,6 +52,7 @@ export default {
         prevAfter?.(to)
       }
       applyPageTheme(window.location.pathname)
+      startPriorityPrefetch()
     }
   }
 }
