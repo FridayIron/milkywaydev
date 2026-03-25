@@ -7,6 +7,7 @@ let particles = []
 let planets = []
 let meteors = []
 let initialized = false
+let shouldAnimate = false
 
 const PARTICLE_COUNT = 200
 const ION_COUNT = 35
@@ -128,14 +129,14 @@ function drawPlanet(ctx, x, y, radius, colors, rotAngle) {
 function animate() {
   const canvas = canvasRef.value
   if (!canvas) {
-    animationId = requestAnimationFrame(animate)
+    if (shouldAnimate) animationId = requestAnimationFrame(animate)
     return
   }
 
   const w = window.innerWidth
   const h = Math.max(window.innerHeight * 0.32, 280)
 
-  if (!initialized) {
+  if (!initialized && shouldAnimate) {
     initParticles(w, h)
     initPlanets()
     initMeteors(w, h)
@@ -187,6 +188,9 @@ function animate() {
   ctx.fillStyle = galaxyBand
   ctx.fillRect(0, 0, w, h)
   ctx.restore()
+
+  // 首帧：只画渐变背景，避免初始化粒子/行星/流星导致首屏卡顿
+  if (!shouldAnimate) return
 
   const scale = Math.min(1, h / 380)
   planets.forEach((p) => {
@@ -272,7 +276,7 @@ function animate() {
   ctx.fillStyle = fadeGrad
   ctx.fillRect(0, 0, w, h)
 
-  animationId = requestAnimationFrame(animate)
+  if (shouldAnimate) animationId = requestAnimationFrame(animate)
 }
 
 function handleResize() {
@@ -281,8 +285,28 @@ function handleResize() {
 
 onMounted(() => {
   nextTick(() => {
+    // 先画静态背景，等页面空闲后再开始动画（移动端明显更快）
+    shouldAnimate = false
     animate()
     window.addEventListener('resize', handleResize)
+
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    const conn = typeof navigator !== 'undefined' ? navigator.connection : null
+    const isLowPower =
+      !!conn && (conn.saveData || /2g/i.test(conn.effectiveType || ''))
+
+    const canAnimate = !reduceMotion && !isLowPower
+    if (!canAnimate) return
+
+    const rIC = window.requestIdleCallback || ((cb) => setTimeout(cb, 800))
+    rIC(() => {
+      shouldAnimate = true
+      animate()
+    }, { timeout: 5000 })
   })
 })
 

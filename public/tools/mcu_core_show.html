@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>MCU MSP/PSP 上下文切换（完整上电流程）</title>
+<style>
+/* 全局重置 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1e1e2e;
+  color: #eee;
+  padding: 20px;
+  line-height: 1.5;
+}
+
+/* 容器布局 - 核心防溢出 */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 标题&调度主体说明 */
+.header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.header h1 {
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.header .desc {
+  color: #aaa;
+  font-size: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
+/* 调度主体说明栏 */
+.scheduler-role {
+  border: 1px solid #4488ff;
+  border-radius: 8px;
+  padding: 15px;
+  background: #252535;
+  margin-bottom: 10px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+.scheduler-role h3 {
+  color: #4488ff;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+.scheduler-role .role-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 8px 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.scheduler-role .role-tag {
+  background: #4488ff;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 寄存器面板 */
+.reg-panel {
+  border: 1px solid #666;
+  border-radius: 8px;
+  padding: 20px;
+  background: #2d2d3f;
+}
+.reg-panel h2 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #fff;
+}
+.cpu-regs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  padding-right: 5px;
+}
+.reg {
+  width: 75px;
+  height: 95px;
+  background: #3b3b5a;
+  border: 1px solid #88a;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+.reg .name {
+  font-size: 13px;
+  color: #ccc;
+  margin-bottom: 4px;
+}
+.reg .val {
+  font-size: 14px;
+  color: #ffd;
+  font-weight: 500;
+  word-break: break-all;
+  text-align: center;
+  line-height: 1.2;
+}
+.reg .type {
+  position: absolute;
+  bottom: 5px;
+  font-size: 9px;
+  color: #88a;
+}
+
+/* 双栈区域 */
+.stack-container {
+  display: flex;
+  gap: 40px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.stack-panel {
+  border: 1px solid #666;
+  border-radius: 8px;
+  padding: 15px;
+  background: #2d2d3f;
+  width: 280px;
+  position: relative;
+}
+.stack-panel h2 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+.stack-owner {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 11px;
+  background: rgba(255, 144, 0, 0.2);
+  color: #ff9000;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+.stack-owner.psp-owner {
+  background: rgba(0, 208, 255, 0.2);
+  color: #00d0ff;
+}
+.ram {
+  width: 100%;
+  height: 400px;
+  background: #2b2b3a;
+  border: 1px solid #666;
+  position: relative;
+  overflow: hidden;
+}
+.stack-item {
+  width: 100%;
+  height: 30px;
+  border-bottom: 1px solid #555;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  position: absolute;
+  transition: all 0.5s ease;
+  font-size: 11px;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stack-item.empty {
+  color: #777;
+}
+.stack-item.msp-data {
+  background: rgba(255, 144, 0, 0.2);
+  color: #ff9000;
+}
+.stack-item.psp-data {
+  background: rgba(0, 208, 255, 0.2);
+  color: #00d0ff;
+}
+
+/* 箭头+调度者标注 */
+.arrow {
+  position: absolute;
+  font-size: 13px;
+  font-weight: bold;
+  z-index: 10;
+  transition: all 0.5s ease;
+  white-space: nowrap;
+}
+.msp-arrow {
+  color: #ff9000;
+  left: -80px;
+  top: 120px !important;
+}
+.psp-arrow {
+  color: #00d0ff;
+  left: -80px;
+  top: 120px !important;
+}
+.arrow-ctrl {
+  position: absolute;
+  font-size: 9px;
+  color: #aaa;
+  left: -80px;
+  white-space: nowrap;
+  top: 140px !important;
+}
+
+/* 控制按钮+步骤说明 */
+.controls {
+  text-align: center;
+  margin: 20px 0;
+}
+.controls button {
+  padding: 10px 18px;
+  margin: 0 4px 8px 4px;
+  background: #5a5acf;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.controls button:hover {
+  background: #6a6adf;
+}
+.controls button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+.step-detail {
+  color: #aaa;
+  font-size: 12px;
+  margin-top: 8px;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 日志区域 */
+.log-panel {
+  border: 1px solid #666;
+  border-radius: 8px;
+  padding: 15px;
+  background: #2d2d3f;
+  min-height: 120px;
+}
+.log-panel h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+#log {
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.hl {
+  color: #ff9000;
+  font-weight: 500;
+}
+.hl2 {
+  color: #00d0ff;
+  font-weight: 500;
+}
+.hl3 {
+  color: #4488ff;
+  font-weight: 500;
+}
+.hl4 {
+  color: #a3e635;
+  font-weight: 500;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  .cpu-regs {
+    gap: 8px;
+  }
+  .reg {
+    width: 70px;
+    height: 90px;
+  }
+  .stack-container {
+    gap: 20px;
+  }
+  .stack-panel {
+    width: 240px;
+  }
+  .controls button {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .arrow {
+    left: -60px;
+    font-size: 12px;
+  }
+  .arrow-ctrl {
+    left: -60px;
+    font-size: 8px;
+  }
+  .scheduler-role .role-item {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .scheduler-role .role-tag {
+    display: inline-block;
+  }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- 标题+核心说明 -->
+  <div class="header">
+    <h1>MCU MSP/PSP 上下文切换（完整上电流程）</h1>
+    <div class="desc">
+      🔹 完整流程：上电复位 → 向量表加载 → 裸机运行 → RTOS启动 → 中断切换 → 恢复运行 | 🔹 核心：寄存器初始值来自硬件/向量表
+    </div>
+  </div>
+
+  <!-- 调度主体说明栏 -->
+  <div class="scheduler-role">
+    <h3>📌 核心调度者分工（从复位到任务运行）</h3>
+    <div class="role-item">
+      <span class="role-tag">硬件复位逻辑</span>
+      <span>「初始化者」：上电后自动读取向量表，加载MSP初始值、PC复位地址（无代码干预）</span>
+    </div>
+    <div class="role-item">
+      <span class="role-tag">硬件内核</span>
+      <span>「执行者」：复位后初始化通用寄存器、中断时压栈/出栈、切换MSP/PSP</span>
+    </div>
+    <div class="role-item">
+      <span class="role-tag">NVIC</span>
+      <span>「中断调度员」：管理中断优先级，触发内核执行上下文切换</span>
+    </div>
+    <div class="role-item">
+      <span class="role-tag">RTOS内核</span>
+      <span>「任务调度员」：在中断中修改PSP值，切换任务栈（改指针指向的RAM地址）</span>
+    </div>
+  </div>
+
+  <!-- CPU寄存器面板 -->
+  <div class="reg-panel">
+    <h2>CPU 核心寄存器（从复位初始值到运行值）</h2>
+    <div class="cpu-regs">
+      <div class="reg">
+        <span class="name">R0</span>
+        <span class="val r0">0x00</span>
+        <span class="type">通用寄存器</span>
+      </div>
+      <div class="reg">
+        <span class="name">R1</span>
+        <span class="val r1">0x00</span>
+        <span class="type">通用寄存器</span>
+      </div>
+      <div class="reg">
+        <span class="name">LR</span>
+        <span class="val lr">0xFFFF</span>
+        <span class="type">返回地址</span>
+      </div>
+      <div class="reg">
+        <span class="name">PC</span>
+        <span class="val pc">0x08000000</span>
+        <span class="type">指令地址</span>
+      </div>
+      <div class="reg">
+        <span class="name">MSP</span>
+        <span class="val msp">0x00</span>
+        <span class="type">主栈指针</span>
+      </div>
+      <div class="reg">
+        <span class="name">PSP</span>
+        <span class="val psp">0x00</span>
+        <span class="type">进程栈指针</span>
+      </div>
+      <div class="reg">
+        <span class="name">PSR</span>
+        <span class="val psr">0x00</span>
+        <span class="type">状态寄存器</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 双栈区域 -->
+  <div class="stack-container">
+    <!-- MSP栈 -->
+    <div class="stack-panel">
+      <h2>RAM 主栈（MSP 指向）</h2>
+      <div class="stack-owner">归属：硬件复位/内核/NVIC</div>
+      <div class="ram" id="mspRam">
+        <div class="stack-item empty" style="top:0px">栈底 (0x200010C0)</div>
+        <div class="stack-item empty" style="top:30px">0x20001090</div>
+        <div class="stack-item empty" style="top:60px">0x20001060</div>
+        <div class="stack-item empty" style="top:90px">0x20001030</div>
+        <div class="stack-item empty" style="top:120px">0x20001000</div>
+        <div class="stack-item empty" style="top:150px">0x20000FD0</div>
+        <div class="stack-item empty" style="top:180px">0x20000FA0</div>
+        <div class="stack-item empty" style="top:210px">0x20000F70</div>
+        <div class="stack-item empty" style="top:240px">0x20000F40</div>
+        <div class="stack-item empty" style="top:270px">0x20000F10</div>
+        <div class="stack-item empty" style="top:300px">0x20000EE0</div>
+        <div class="stack-item empty" style="top:330px">0x20000EB0</div>
+        <div class="stack-item empty" style="top:360px">栈顶 (0x20000E80)</div>
+      </div>
+      <div class="arrow msp-arrow" id="mspArrow" style="top:120px">⬆️ MSP</div>
+      <div class="arrow-ctrl msp-ctrl">控制者：硬件复位逻辑</div>
+    </div>
+
+    <!-- PSP栈 -->
+    <div class="stack-panel">
+      <h2>RAM 进程栈（PSP 指向）</h2>
+      <div class="stack-owner psp-owner">归属：RTOS/应用任务</div>
+      <div class="ram" id="pspRam">
+        <div class="stack-item empty" style="top:0px">栈底 (0x200020C0)</div>
+        <div class="stack-item empty" style="top:30px">0x20002090</div>
+        <div class="stack-item empty" style="top:60px">0x20002060</div>
+        <div class="stack-item empty" style="top:90px">0x20002030</div>
+        <div class="stack-item empty" style="top:120px">0x20002000</div>
+        <div class="stack-item empty" style="top:150px">0x20001FD0</div>
+        <div class="stack-item empty" style="top:180px">0x20001FA0</div>
+        <div class="stack-item empty" style="top:210px">0x20001F70</div>
+        <div class="stack-item empty" style="top:240px">0x20001F40</div>
+        <div class="stack-item empty" style="top:270px">0x20001F10</div>
+        <div class="stack-item empty" style="top:300px">0x20001EE0</div>
+        <div class="stack-item empty" style="top:330px">0x20001EB0</div>
+        <div class="stack-item empty" style="top:360px">栈顶 (0x20001E80)</div>
+      </div>
+      <div class="arrow psp-arrow" id="pspArrow" style="top:120px">⬆️ PSP</div>
+      <div class="arrow-ctrl psp-ctrl">控制者：未激活（RTOS启动后接管）</div>
+    </div>
+  </div>
+
+  <!-- 控制按钮（新增上电复位步骤） -->
+  <div class="controls">
+    <button id="step0">0. 上电复位（硬件初始化）</button>
+    <button id="step1">1. 裸机运行（MSP初始化完成）</button>
+    <button id="step2">2. 启动RTOS（PSP激活）</button>
+    <button id="step3">3. 中断触发（NVIC+内核压栈）</button>
+    <button id="step4">4. 任务切换（RTOS改PSP）</button>
+    <button id="step5">5. 中断返回（内核出栈恢复）</button>
+    <button id="reset">🔄 重置</button>
+  </div>
+  <div class="step-detail">
+    核心溯源：<strong class="hl4">上电复位</strong> → MSP从向量表0x08000000加载初始值 | <strong class="hl">通用寄存器</strong>初始值=硬件默认0x00 | <strong class="hl2">PSP</strong>初始值=0（RTOS启动后赋值）
+  </div>
+
+  <!-- 日志区域 -->
+  <div class="log-panel">
+    <h2>执行日志（完整上电流程）</h2>
+    <div id="log">
+      ⚡️ 初始状态：MCU未上电 → 所有寄存器值为随机值/0，RAM未初始化，无栈指针指向
+    </div>
+  </div>
+</div>
+
+<script>
+// 获取DOM元素
+const mspItems = Array.from(document.querySelectorAll('#mspRam .stack-item'));
+const pspItems = Array.from(document.querySelectorAll('#pspRam .stack-item'));
+const mspArrow = document.getElementById('mspArrow');
+const pspArrow = document.getElementById('pspArrow');
+const log = document.getElementById('log');
+
+// 寄存器元素
+const reg = {
+  r0: document.querySelector('.r0'),
+  r1: document.querySelector('.r1'),
+  lr: document.querySelector('.lr'),
+  pc: document.querySelector('.pc'),
+  msp: document.querySelector('.msp'),
+  psp: document.querySelector('.psp'),
+  psr: document.querySelector('.psr'),
+};
+
+// 全局状态
+let currentStep = -1;
+let taskASaved = false;
+
+// 日志设置函数
+function setLog(content) {
+  log.innerHTML = content;
+}
+
+// 重置所有状态（回到未上电状态）
+function resetAll() {
+  // 重置寄存器为未上电状态
+  reg.r0.textContent = '0x00';
+  reg.r1.textContent = '0x00';
+  reg.lr.textContent = '0xFFFF';
+  reg.pc.textContent = '0x08000000';
+  reg.msp.textContent = '0x00';
+  reg.psp.textContent = '0x00';
+  reg.psr.textContent = '0x00';
+  
+  // 重置MSP栈
+  mspItems.forEach((item, i) => {
+    item.classList.add('empty');
+    item.classList.remove('msp-data');
+    const addrMap = [
+      '栈底 (0x200010C0)', '0x20001090', '0x20001060', '0x20001030', '0x20001000',
+      '0x20000FD0', '0x20000FA0', '0x20000F70', '0x20000F40', '0x20000F10',
+      '0x20000EE0', '0x20000EB0', '栈顶 (0x20000E80)'
+    ];
+    item.textContent = addrMap[i];
+  });
+  
+  // 重置PSP栈
+  pspItems.forEach((item, i) => {
+    item.classList.add('empty');
+    item.classList.remove('psp-data');
+    const addrMap = [
+      '栈底 (0x200020C0)', '0x20002090', '0x20002060', '0x20002030', '0x20002000',
+      '0x20001FD0', '0x20001FA0', '0x20001F70', '0x20001F40', '0x20001F10',
+      '0x20001EE0', '0x20001EB0', '栈顶 (0x20001E80)'
+    ];
+    item.textContent = addrMap[i];
+  });
+  
+  // 重置箭头位置和标注
+  mspArrow.style.top = '120px';
+  pspArrow.style.top = '120px';
+  document.querySelector('.msp-ctrl').textContent = '控制者：硬件复位逻辑';
+  document.querySelector('.psp-ctrl').textContent = '控制者：未激活（RTOS启动后接管）';
+  
+  // 重置状态
+  currentStep = -1;
+  taskASaved = false;
+  setLog(`⚡️ 初始状态：MCU未上电 → 所有寄存器值为随机值/0，RAM未初始化，无栈指针指向`);
+}
+
+// 步骤0：上电复位（硬件初始化，最核心的初始值来源）
+function step0() {
+  resetAll();
+  currentStep = 0;
+  
+  // 硬件复位逻辑：从向量表加载初始值
+  reg.msp.textContent = '0x20001000';  // MSP初始值来自向量表第0个位置（0x08000000）
+  reg.pc.textContent = '0x08000004';   // PC初始值来自向量表第1个位置（复位中断地址）
+  reg.psr.textContent = '0x01';        // PSR初始值：硬件默认（特权级）
+  reg.lr.textContent = '0xFFFFFFFD';  // LR初始值：复位后默认返回值
+  
+  // 通用寄存器：硬件复位默认清零
+  reg.r0.textContent = '0x00';
+  reg.r1.textContent = '0x00';
+  
+  // 箭头标注更新
+  document.querySelector('.msp-ctrl').textContent = '控制者：硬件复位逻辑';
+  
+  setLog(`<span class="hl4">步骤0：上电复位（硬件初始化）</span><br>
+  • <span class="hl3">核心来源</span> → MSP=0x20001000（从Flash向量表0x08000000读取）<br>
+  • <span class="hl3">核心来源</span> → PC=0x08000004（从Flash向量表0x08000004读取复位函数地址）<br>
+  • <span class="hl3">硬件默认</span> → R0/R1=0x00（通用寄存器复位清零）、PSR=0x01（特权级）<br>
+  • <span class="hl3">未初始化</span> → PSP=0x00（未激活，RTOS启动前无意义）<br>
+  • 本质：<strong>所有初始值都来自硬件逻辑/向量表，无任何代码执行</strong>`);
+}
+
+// 步骤1：裸机运行（MSP初始化完成，通用寄存器赋值）
+function step1() {
+  if (currentStep < 0) return;
+  
+  // 裸机程序运行：给通用寄存器赋值（程序执行的结果）
+  reg.r0.textContent = '0x12';
+  reg.r1.textContent = '0x34';
+  reg.pc.textContent = '0x2000';     // PC跳转到主程序地址
+  reg.lr.textContent = '0x1000';     // LR赋值为函数返回地址
+  
+  // 箭头标注更新
+  document.querySelector('.msp-ctrl').textContent = '控制者：硬件内核';
+  
+  currentStep = 1;
+  setLog(`<span class="hl">步骤1：裸机运行（MSP初始化完成）</span><br>
+  • <span class="hl3">寄存器值来源</span> → R0=0x12/R1=0x34（主程序执行赋值）<br>
+  • <span class="hl3">运行模式</span> → 所有代码跑在MSP栈（0x20001000），特权级运行<br>
+  • <span class="hl3">PSP状态</span> → 仍为0x00（未使用，RTOS未启动）<br>
+  • 核心：<strong>裸机阶段只有MSP工作，所有数据存在MSP指向的RAM</strong>`);
+}
+
+// 步骤2：启动RTOS（PSP激活，RTOS接管）
+function step2() {
+  if (currentStep < 1) return;
+  
+  // RTOS初始化PSP
+  reg.pc.textContent = '0x3000';
+  reg.psr.textContent = '0x02';
+  reg.psp.textContent = '0x20001FA0';
+  
+  // 移动PSP箭头
+  pspArrow.style.top = '180px';
+  
+  // PSP栈写入任务A数据（RTOS初始化）
+  pspItems[7].classList.remove('empty');
+  pspItems[7].classList.add('psp-data');
+  pspItems[7].textContent = '任务A: R0=0x12';
+  pspItems[8].classList.remove('empty');
+  pspItems[8].classList.add('psp-data');
+  pspItems[8].textContent = '任务A: R1=0x34';
+  
+  // 箭头标注更新
+  document.querySelector('.psp-ctrl').textContent = '控制者：RTOS内核';
+  
+  currentStep = 2;
+  setLog(`<span class="hl2">步骤2：启动RTOS（PSP激活）</span><br>
+  • <span class="hl3">RTOS操作</span> → 修改CONTROL寄存器，切换CPU到PSP模式<br>
+  • <span class="hl3">PSP来源</span> → 0x20001FA0（RTOS为任务A分配的栈地址）<br>
+  • <span class="hl3">数据来源</span> → 任务A的R0/R1从MSP栈复制到PSP栈（寄存器→RAM）<br>
+  • MSP仍由硬件内核控制，保留给中断使用`);
+}
+
+// 步骤3：中断触发（NVIC+硬件内核压栈）
+function step3() {
+  if (currentStep < 2) return;
+  
+  // 移动MSP箭头
+  mspArrow.style.top = '180px';
+  
+  // 修改MSP寄存器值（栈增长）
+  reg.msp.textContent = '0x20000FA0';
+  
+  // 硬件自动压栈（R0/R1/LR/PC/PSR）
+  mspItems[7].classList.remove('empty');
+  mspItems[7].classList.add('msp-data');
+  mspItems[7].textContent = 'R0 = 0x12';
+  mspItems[8].classList.remove('empty');
+  mspItems[8].classList.add('msp-data');
+  mspItems[8].textContent = 'R1 = 0x34';
+  mspItems[6].classList.remove('empty');
+  mspItems[6].classList.add('msp-data');
+  mspItems[6].textContent = 'LR = 0x1000';
+  mspItems[5].classList.remove('empty');
+  mspItems[5].classList.add('msp-data');
+  mspItems[5].textContent = 'PC = 0x3000';
+  mspItems[4].classList.remove('empty');
+  mspItems[4].classList.add('msp-data');
+  mspItems[4].textContent = 'PSR = 0x02';
+  
+  // 修改PC为中断服务函数地址
+  reg.pc.textContent = '0x9000';
+  reg.lr.textContent = '0xFFFF';
+  
+  currentStep = 3;
+  setLog(`<span class="hl">步骤3：中断触发（NVIC+内核压栈）</span><br>
+  • <span class="hl3">NVIC触发</span> → 中断请求，硬件内核暂停任务A<br>
+  • <span class="hl3">内核操作</span> → 自动切换回MSP，将R0/R1/LR/PC/PSR压入MSP指向的RAM<br>
+  • <span class="hl3">栈变化</span> → MSP从0x20001000→0x20000FA0（栈增长，指针上移）<br>
+  • PC跳转到中断服务函数（0x9000），LR设为中断返回标记`);
+}
+
+// 步骤4：任务切换（RTOS改PSP指针）
+function step4() {
+  if (currentStep < 3) return;
+  
+  if (!taskASaved) {
+    // 保存任务A剩余上下文
+    pspItems[9].classList.remove('empty');
+    pspItems[9].classList.add('psp-data');
+    pspItems[9].textContent = '任务A: LR=0x1000';
+    pspItems[10].classList.remove('empty');
+    pspItems[10].classList.add('psp-data');
+    pspItems[10].textContent = '任务A: PC=0x3000';
+    
+    // 切换到任务B栈（改PSP指针）
+    reg.psp.textContent = '0x20001F10';
+    pspArrow.style.top = '270px';
+    
+    // 写入任务B数据（RTOS从任务控制块加载）
+    pspItems[11].classList.remove('empty');
+    pspItems[11].classList.add('psp-data');
+    pspItems[11].textContent = '任务B: R0=0x56';
+    pspItems[10].textContent = '任务B: R1=0x78';
+    pspItems[9].textContent = '任务B: LR=0x4000';
+    pspItems[8].textContent = '任务B: PC=0x5000';
+    
+    taskASaved = true;
+    setLog(`<span class="hl2">步骤4：任务切换（RTOS改PSP）</span><br>
+    • <span class="hl3">RTOS操作</span> → 在中断中保存任务A完整上下文到PSP栈（RAM）<br>
+    • <span class="hl3">核心操作</span> → 修改PSP=0x20001F10（仅改指针，不改RAM数据）<br>
+    • <span class="hl3">数据来源</span> → 任务B的R0/R1/LR/PC从任务控制块（TCB）加载<br>
+    • 本质：<strong>切换PSP=切换任务=切换RAM栈地址</strong>`);
+  } else {
+    // 切回任务A
+    reg.psp.textContent = '0x20001FA0';
+    pspArrow.style.top = '180px';
+    
+    // 恢复任务A数据
+    pspItems[7].textContent = '任务A: R0=0x12';
+    pspItems[8].textContent = '任务A: R1=0x34';
+    pspItems[9].textContent = '任务A: LR=0x1000';
+    pspItems[10].textContent = '任务A: PC=0x3000';
+    pspItems[11].classList.add('empty');
+    pspItems[11].classList.remove('psp-data');
+    pspItems[11].textContent = '0x20001EB0';
+    
+    taskASaved = false;
+    setLog(`<span class="hl2">步骤4：切回任务A（RTOS改PSP）</span><br>
+    • <span class="hl3">RTOS操作</span> → 修改PSP=0x20001FA0，切回任务A的RAM栈<br>
+    • <span class="hl3">数据恢复</span> → 从任务A栈恢复寄存器值，PC回到0x3000<br>
+    • 关键：RTOS只改PSP指针，不碰MSP（MSP归硬件内核管）`);
+  }
+  
+  currentStep = 4;
+}
+
+// 步骤5：中断返回（硬件内核出栈恢复）
+function step5() {
+  if (currentStep < 4) return;
+  
+  // 恢复寄存器值
+  reg.r0.textContent = '0x12';
+  reg.r1.textContent = '0x34';
+  reg.lr.textContent = '0x1000';
+  reg.pc.textContent = taskASaved ? '0x5000' : '0x3000';
+  reg.msp.textContent = '0x20001000';
+  reg.psr.textContent = '0x02';
+  
+  // 移动MSP箭头回原位
+  mspArrow.style.top = '120px';
+  
+  // 清空MSP栈的压栈数据（延迟动画）
+  setTimeout(() => {
+    mspItems[4].classList.add('empty');
+    mspItems[4].classList.remove('msp-data');
+    mspItems[4].textContent = '0x20001000';
+    
+    mspItems[5].classList.add('empty');
+    mspItems[5].classList.remove('msp-data');
+    mspItems[5].textContent = '0x20000FD0';
+    
+    mspItems[6].classList.add('empty');
+    mspItems[6].classList.remove('msp-data');
+    mspItems[6].textContent = '0x20000FA0';
+    
+    mspItems[7].classList.add('empty');
+    mspItems[7].classList.remove('msp-data');
+    mspItems[7].textContent = '0x20000F70';
+    
+    mspItems[8].classList.add('empty');
+    mspItems[8].classList.remove('msp-data');
+    mspItems[8].textContent = '0x20000F40';
+    
+    currentStep = 5;
+  }, 600);
+  
+  setLog(`<span class="hl">步骤5：中断返回（内核出栈恢复）</span><br>
+  • <span class="hl3">内核操作</span> → 执行BX LR指令，自动从MSP栈恢复R0/R1/LR/PC/PSR<br>
+  • <span class="hl3">栈变化</span> → MSP从0x20000FA0→0x20001000（指针下移，栈收缩）<br>
+  • <span class="hl3">运行恢复</span> → PC=${taskASaved ? '0x5000' : '0x3000'}，CPU继续运行任务<br>
+  • 全程溯源：<strong>所有寄存器初始值来自硬件/向量表，运行值来自程序/RTOS</strong>`);
+}
+
+// 绑定按钮事件
+document.getElementById('step0').addEventListener('click', step0);
+document.getElementById('step1').addEventListener('click', step1);
+document.getElementById('step2').addEventListener('click', step2);
+document.getElementById('step3').addEventListener('click', step3);
+document.getElementById('step4').addEventListener('click', step4);
+document.getElementById('step5').addEventListener('click', step5);
+document.getElementById('reset').addEventListener('click', resetAll);
+
+// 初始化
+resetAll();
+</script>
+</body>
+</html>
