@@ -20,7 +20,7 @@ skillValue: [9, 9, 9, 8, 7, 9]
 
 <SkillChart />
 
-## 个人项目与工具
+## 工作中的小工具
 
 我还做了一些网页小工具、Python 界面工具等实体项目，详见 [个人项目与工具](/pages/skill-tools)。
 
