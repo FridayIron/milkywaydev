@@ -27,6 +27,9 @@ export default defineConfig({
           /* 单层下拉，避免嵌套菜单在部分 CDN/缓存下不更新或交互异常 */
           { text: '个人项目 · 工具列表', link: '/pages/skill-tools' },
           { text: '个人项目 · SVG 转换', link: '/pages/skill-tools-svg' },
+          { text: '个人项目 · MCU 上下文切换', link: '/pages/skill-tools-mcu-core' },
+          { text: '个人项目 · 步进电机图表版', link: '/pages/skill-tools-step-motor-view' },
+          { text: '个人项目 · 步进电机高级版', link: '/pages/skill-tools-step-motor' },
         ],
       },
       { text: '生活记录', link: '/pages/life' },
@@ -46,6 +49,9 @@ export default defineConfig({
           /* 单层下拉，避免嵌套菜单在部分 CDN/缓存下不更新或交互异常 */
           { text: '个人项目 · 工具列表', link: '/pages/skill-tools' },
           { text: '个人项目 · SVG 转换', link: '/pages/skill-tools-svg' },
+          { text: '个人项目 · MCU 上下文切换', link: '/pages/skill-tools-mcu-core' },
+          { text: '个人项目 · 步进电机图表版', link: '/pages/skill-tools-step-motor-view' },
+          { text: '个人项目 · 步进电机高级版', link: '/pages/skill-tools-step-motor' },
         ],
       },
       { text: '生活记录', link: '/pages/life' },
@@ -53,6 +59,10 @@ export default defineConfig({
     socialLinks: [],
   },
   vite: {
+    resolve: {
+      // Windows 下盘符大小写差异可能导致 VitePress 渲染阶段找不到 page chunk
+      preserveSymlinks: true,
+    },
     define: {
       __VISITOR_API_URL__: JSON.stringify(process.env.VITE_VISITOR_API_URL || visitorApiUrl || '')
     },

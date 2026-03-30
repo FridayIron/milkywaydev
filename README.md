@@ -18,7 +18,10 @@ npm run build
 npm run preview
 ```
 
-启动后浏览器访问 `http://localhost:5173`。
+- **`npm run dev`**：终端里会打印实际地址，一般是 `http://localhost:5173`（若端口被占用会自动换端口，**以终端输出为准**）。
+- **`npm run preview`**：预览的是已构建的站点，Vite 默认多为 **`http://localhost:4173`**，同样以终端输出为准。
+
+若浏览器提示 **Connection failed**，多半是 **开发服务没在跑**，或 **端口号和终端不一致**。
 
 ## 目录结构（对应嵌入式逻辑）
 

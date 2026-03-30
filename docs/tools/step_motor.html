@@ -1,0 +1,1597 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>步进电机多种曲线加减速计算器（优化版）</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .params-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .params-panel {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .motor-params-panel {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .formula-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .results-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #333;
+            margin-top: 0;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #444;
+            margin-bottom: 10px;
+        }
+        
+        .param-group {
+            margin-bottom: 15px;
+        }
+        
+        .param-description {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+            font-style: italic;
+        }
+        
+        .warning {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 5px;
+            background-color: #fef0f0;
+            border-radius: 3px;
+            display: none;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .export-btn {
+            background-color: #2196F3;
+        }
+        
+        .export-btn:hover {
+            background-color: #0b7dda;
+        }
+        
+        .test-formula-btn {
+            background-color: #ff9800;
+        }
+        
+        .test-formula-btn:hover {
+            background-color: #e65100;
+        }
+        
+        .table-container {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .chart-container {
+            height: 400px;
+            position: relative;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .frequency-result {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border-radius: 4px;
+            border-left: 3px solid #2196F3;
+        }
+        
+        .formula-container {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #ff9800;
+            font-size: 14px;
+        }
+        
+        .formula-container h3 {
+            margin-top: 0;
+            color: #e65100;
+            font-size: 16px;
+        }
+        
+        .formula-step {
+            margin-bottom: 10px;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+        
+        .formula-variable {
+            display: inline-block;
+            background-color: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin: 0 2px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .frequency-result h3 {
+            margin: 0 0 8px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        .frequency-result p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .dual-axis-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .axis-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .axis-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* 动画相关样式 */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .calculating-indicator {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+            color: #4CAF50;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .formula-test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            border-left: 3px solid #4CAF50;
+            color: #2e7d32;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            border-left: 3px solid #e74c3c;
+            color: #c62828;
+        }
+        
+        .data-point {
+            transition: all 0.1s ease;
+        }
+        
+        .phase-highlight {
+            animation: phasePulse 2s infinite;
+        }
+        
+        @keyframes phasePulse {
+            0% { background-color: rgba(76, 175, 80, 0.1); }
+            50% { background-color: rgba(76, 175, 80, 0.3); }
+            100% { background-color: rgba(76, 175, 80, 0.1); }
+        }
+        
+        .formula-description {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+
+        .formula-pair {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .formula-pair:last-child {
+            border-bottom: none;
+        }
+
+        .formula-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 公式自定义区域 -->
+        <div class="formula-panel">
+            <h2>加速/减速曲线公式自定义</h2>
+            <p>您可以修改以下公式来调整加速和减速曲线的形状。公式使用JavaScript语法，可使用以下变量：</p>
+            <ul>
+                <li><span class="formula-variable">i</span> - 当前台阶索引（从0开始）</li>
+                <li><span class="formula-variable">n</span> - 总台阶数</li>
+                <li><span class="formula-variable">v0</span> - 阶段起始速度（圈/s）</li>
+                <li><span class="formula-variable">v1</span> - 阶段结束速度（圈/s）</li>
+                <li><span class="formula-variable">ratio</span> - 归一化比例（i/(n-1)，范围0到1）</li>
+            </ul>
+            
+            <div class="formula-pair">
+                <div class="formula-title">加速曲线公式</div>
+                <div class="param-group">
+                    <label for="accelFormula">加速阶段公式（v0 → v1）</label>
+                    <textarea id="accelFormula">v0 + (v1 - v0) * (ratio * ratio * (3 - 2 * ratio))</textarea>
+                    <div class="param-description">公式应返回当前台阶的速度值（圈/s），从v0平滑过渡到v1</div>
+                </div>
+            </div>
+            
+            <div class="formula-pair">
+                <div class="formula-title">减速曲线公式</div>
+                <div class="param-group">
+                    <label for="decelFormula">减速阶段公式（v0 → v1）</label>
+                    <textarea id="decelFormula">v0 - (v0 - v1) * (ratio * ratio * (3 - 2 * ratio))</textarea>
+                    <div class="param-description">公式应返回当前台阶的速度值（圈/s），从v0平滑过渡到v1</div>
+                </div>
+            </div>
+            
+            <div class="param-group">
+                <label>预设曲线公式对</label>
+                <div class="button-group">
+                    <button onclick="loadPresetFormula('s-curve')">
+                        <i class="fas fa-wave-square"></i> S型曲线
+                    </button>
+                    <button onclick="loadPresetFormula('trapezoidal')">
+                        <i class="fas fa-wave-square"></i> 梯形曲线
+                    </button>
+                    <button onclick="loadPresetFormula('linear')">
+                        <i class="fas fa-sliders-h"></i> 线性曲线
+                    </button>
+                    <button onclick="loadPresetFormula('quadratic')">
+                        <i class="fas fa-caret-up"></i> 二次曲线
+                    </button>
+                    <button onclick="loadPresetFormula('cubic')">
+                        <i class="fas fa-cube"></i> 三次曲线
+                    </button>
+                    <button onclick="loadPresetFormula('sqrt')">
+                        <i class="fas fa-square-root-alt"></i> 平方根曲线
+                    </button>
+                    <button onclick="loadPresetFormula('sinusoidal')">
+                        <i class="fas fa-wave-square"></i> 正弦曲线
+                    </button>
+                    <button onclick="loadPresetFormula('exponential')">
+                        <i class="fas fa-chart-line"></i> 指数曲线
+                    </button>
+                    <button onclick="loadPresetFormula('logarithmic')">
+                        <i class="fas fa-chart-line"></i> 对数曲线
+                    </button>
+                </div>
+                <div id="formulaDescription" class="formula-description">
+                    S型曲线：开始和结束时加速度较低，中间较高，运动平滑，适用于对平稳性要求高的场合
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button class="test-formula-btn" onclick="testBothFormulas()">
+                    <i class="fas fa-flask"></i> 测试加速/减速公式
+                </button>
+            </div>
+            
+            <div id="formulaTestResult" class="formula-test-result">
+                <!-- 公式测试结果将在这里显示 -->
+            </div>
+        </div>
+        
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <!-- 参数输入区域 -->
+            <div class="params-container">
+                <div class="params-panel">
+                    <h2>S型加减速参数（圈/s）</h2>
+                    <div class="param-group">
+                        <label for="startVelSteps">以加速起始速度运动的步数</label>
+                        <input type="number" id="startVelSteps" value="200" min="0" step="50">
+                        <div class="param-description">加速前以起始速度运动的步数</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="accelSegments">加速段台阶数（表格大小）</label>
+                        <input type="number" id="accelSegments" value="10" min="1" step="1">
+                        <div class="param-description">设置加速段表格的大小（行数），建议10以上以清晰显示曲线特征</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="accelStepsPerSegment">每个加速台阶的步数</label>
+                        <input type="number" id="accelStepsPerSegment" value="200" min="1" step="10">
+                        <div class="param-description">每个加速台阶的固定步数</div>
+                        <div id="accelDistanceInfo" class="param-description">
+                            加速段总步数: <span>2000</span>
+                        </div>
+                    </div>
+                    <div class="param-group">
+                        <label for="startVelRps">加速起始速度 (圈/s)</label>
+                        <input type="number" id="startVelRps" value="0.5" min="0" step="0.1">
+                    </div>
+                    <div class="param-group">
+                        <label for="accelEndVelRps">加速结束速度 (圈/s)</label>
+                        <input type="number" id="accelEndVelRps" value="5" min="0" step="0.5">
+                    </div>
+                    <div class="param-group">
+                        <label for="decelStartVelRps">减速起始速度 (圈/s)</label>
+                        <input type="number" id="decelStartVelRps" value="5" min="0" step="0.5" readonly>
+                        <div class="param-description">与加速结束速度相同（只读）</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="decelEndVelRps">减速结束速度 (圈/s)</label>
+                        <input type="number" id="decelEndVelRps" value="0.5" min="0" step="0.1" readonly>
+                        <div class="param-description">与加速起始速度相同（只读）</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="totalDistanceSteps">总行走路程 (步数)</label>
+                        <input type="number" id="totalDistanceSteps" value="8000" min="1" step="100">
+                        <div class="param-description">电机需要行走的总步数，建议足够大以显示匀速段</div>
+                        <div id="distanceWarning" class="warning">
+                            警告: 总路程小于最小必需步数，无法完成运动
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="motor-params-panel">
+                    <h2>步进电机参数</h2>
+                    <div class="param-group">
+                        <label for="motorLines">电机线数</label>
+                        <input type="number" id="motorLines" value="200" min="1" step="1">
+                        <div class="param-description">用于计算脉冲转换比例</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="microstep">细分数</label>
+                        <input type="number" id="microstep" value="1" min="1" step="1">
+                        <div class="param-description">用于计算脉冲转换比例</div>
+                    </div>
+                    
+                    <div class="frequency-result">
+                        <h3>转换参数</h3>
+                        <p>每圈脉冲数: <span id="pulsesPerRevolution">200</span></p>
+                        <p>1圈/s = <span id="stepsPerSecond">200</span> steps/s = <span id="hzPerRps">200</span> Hz</p>
+                    </div>
+
+                    <div class="frequency-result">
+                        <h3>计算结果</h3>
+                        <p>加速段总步数: <span id="accelTotalSteps">2000</span></p>
+                        <p>减速段总步数: <span id="decelTotalSteps">2000</span></p>
+                        <p>匀速段步数: <span id="cruiseStepsResult">3800</span></p>
+                        <p>最小必需总步数: <span id="minRequiredSteps">4200</span></p>
+                        <p>实际总运动步数: <span id="totalSteps">8000</span></p>
+                    </div>
+                    
+                    <div class="calculating-indicator" id="calculatingIndicator">
+                        <i class="fas fa-spinner fa-spin"></i> 正在计算并绘制曲线...
+                    </div>
+                    
+                    <div class="button-group">
+                        <button onclick="calculateSCurve()">
+                            <i class="fas fa-calculator"></i> 计算曲线
+                        </button>
+                        <button class="export-btn" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i> 导出加速表
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 结果展示区域 -->
+            <div class="results-panel">
+                <!-- 速度表格 - 仅显示加速段 -->
+                <div class="panel">
+                    <h2>加速段速度表</h2>
+                    <div class="param-description">仅显示加速段的速度参数表格，表格大小由"加速段台阶数"控制</div>
+                    <div class="table-container">
+                        <table id="resultTable">
+                            <thead>
+                                <tr>
+                                    <th>台阶</th>
+                                    <th>速度 (圈/s)</th>
+                                    <th>速度 (steps/s)</th>
+                                    <th>频率 (Hz)</th>
+                                    <th>定时器周期 (ms)</th>
+                                    <th>本台阶步数</th>
+                                    <th>累计加速步数</th>
+                                    <th>本台阶时间 (ms)</th>
+                                    <th>累计加速时间 (ms)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 结果将在这里动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 曲线图表 - 保持不变，显示完整曲线 -->
+                <div class="panel">
+                    <h2>加减速完整曲线与定时器周期</h2>
+                    <div class="chart-container">
+                        <canvas id="speedChart"></canvas>
+                    </div>
+                    <div class="dual-axis-info">
+                        <div class="axis-label">
+                            <div class="axis-color" style="background-color: blue;"></div>
+                            <span>蓝色: 速度 (steps/s)</span>
+                        </div>
+                        <div class="axis-label">
+                            <div class="axis-color" style="background-color: purple;"></div>
+                            <span>紫色: 定时器周期 (ms)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 曲线公式对及其描述的映射表 - 为每种曲线类型单独定义加速和减速公式
+        const curveFormulas = {
+            's-curve': {
+                accelFormula: "v0 + (v1 - v0) * (ratio * ratio * (3 - 2 * ratio))",
+                decelFormula: "v0 - (v0 - v1) * (ratio * ratio * (3 - 2 * ratio))",
+                description: "S型曲线：加速和减速阶段对称，加速度先增后减，运动平滑，冲击小"
+            },
+            'trapezoidal': {
+                accelFormula: "v0 + (v1 - v0) * ratio",
+                decelFormula: "v0 - (v0 - v1) * ratio",
+                description: "梯形曲线：加速度恒定，速度线性变化，加速和减速阶段对称，控制简单"
+            },
+            'linear': {
+                accelFormula: "v0 + (v1 - v0) * ratio",
+                decelFormula: "v0 - (v0 - v1) * ratio",
+                description: "线性曲线：速度随时间均匀变化，加速度恒定，加速和减速阶段对称"
+            },
+            'quadratic': {
+                accelFormula: "v0 + (v1 - v0) * (ratio * ratio)",
+                decelFormula: "v1 + (v0 - v1) * ((1 - ratio) * (1 - ratio))",
+                description: "二次曲线：加速时加速度逐渐增大，减速时加速度逐渐减小，形成对称曲线"
+            },
+            'cubic': {
+                accelFormula: "v0 + (v1 - v0) * (ratio * ratio * ratio)",
+                decelFormula: "v1 + (v0 - v1) * ((1 - ratio) * (1 - ratio) * (1 - ratio))",
+                description: "三次曲线：加速时加速度快速增大，减速时加速度快速减小，曲线变化更明显"
+            },
+            'sqrt': {
+                accelFormula: "v0 + (v1 - v0) * Math.sqrt(ratio)",
+                decelFormula: "v1 + (v0 - v1) * Math.sqrt(1 - ratio)",
+                description: "平方根曲线：加速初期速度增长快，后期趋缓；减速初期速度下降慢，后期加快"
+            },
+            'sinusoidal': {
+                accelFormula: "v0 + (v1 - v0) * (1 - Math.cos(ratio * Math.PI / 2))",
+                decelFormula: "v1 + (v0 - v1) * (1 - Math.cos((1 - ratio) * Math.PI / 2))",
+                description: "正弦曲线：基于正弦函数的平滑曲线，加速度变化连续，无突变点"
+            },
+            'exponential': {
+                accelFormula: "v0 + (v1 - v0) * (1 - Math.exp(-5 * ratio))",
+                decelFormula: "v1 + (v0 - v1) * (1 - Math.exp(-5 * (1 - ratio)))",
+                description: "指数曲线：加速时快速接近最大速度，减速时缓慢离开最大速度，适合需要快速达到稳定速度的场景"
+            },
+            'logarithmic': {
+                accelFormula: "v0 + (v1 - v0) * (Math.log(ratio * 9 + 1) / Math.log(10))",
+                decelFormula: "v1 + (v0 - v1) * (Math.log((1 - ratio) * 9 + 1) / Math.log(10))",
+                description: "对数曲线：加速时速度增长逐渐加快，减速时速度下降逐渐加快，适合需要平稳过渡的场景"
+            }
+        };
+
+        // 计算转换参数并更新显示
+        function calculateConversionParams() {
+            try {
+                const motorLines = parseInt(document.getElementById('motorLines').value);
+                const microstep = parseInt(document.getElementById('microstep').value);
+                
+                // 计算每圈脉冲数 = 电机线数 × 细分数 × 2
+                const pulsesPerRevolution = motorLines * microstep * 2;
+                
+                // 更新显示
+                document.getElementById('pulsesPerRevolution').textContent = pulsesPerRevolution;
+                document.getElementById('stepsPerSecond').textContent = pulsesPerRevolution;
+                document.getElementById('hzPerRps').textContent = pulsesPerRevolution;
+                
+                return pulsesPerRevolution;
+            } catch (error) {
+                alert('参数计算错误: ' + error.message);
+                console.error(error);
+                return null;
+            }
+        }
+
+        // 计算加速段总步数
+        function calculateAccelDistance() {
+            const accelSegments = parseInt(document.getElementById('accelSegments').value);
+            const accelStepsPerSegment = parseInt(document.getElementById('accelStepsPerSegment').value);
+            const total = accelSegments * accelStepsPerSegment;
+            
+            document.querySelector('#accelDistanceInfo span').textContent = total;
+            document.getElementById('accelTotalSteps').textContent = total;
+            document.getElementById('decelTotalSteps').textContent = total; // 减速段与加速段相同
+            
+            return total;
+        }
+
+        // 检查总路程是否足够
+        function checkTotalDistance() {
+            const startVelSteps = parseInt(document.getElementById('startVelSteps').value);
+            const accelTotal = calculateAccelDistance();
+            const totalDistance = parseInt(document.getElementById('totalDistanceSteps').value);
+            
+            // 计算最小必需步数
+            const minRequired = startVelSteps + 2 * accelTotal; // 起始段 + 加速段 + 减速段
+            document.getElementById('minRequiredSteps').textContent = minRequired;
+            
+            // 计算匀速段步数
+            const cruiseSteps = Math.max(0, totalDistance - minRequired);
+            document.getElementById('cruiseStepsResult').textContent = cruiseSteps;
+            
+            // 显示警告如果总路程不足
+            const warningEl = document.getElementById('distanceWarning');
+            if (totalDistance < minRequired) {
+                warningEl.style.display = 'block';
+                return false;
+            } else {
+                warningEl.style.display = 'none';
+                return true;
+            }
+        }
+
+        // 转换圈/秒到steps/s
+        function rpsToStepsPerSecond(rps, pulsesPerRevolution) {
+            return rps * pulsesPerRevolution;
+        }
+
+        // 转换steps/s到Hz
+        function stepsPerSecondToHz(steps) {
+            return steps.toFixed(2);
+        }
+
+        // 转换Hz到定时器周期(ms)
+        function hzToPeriodMs(hz) {
+            if (hz <= 0) return 0;
+            return (1000 / hz).toFixed(4);
+        }
+
+        // 当参数变化时重新计算相关值
+        document.getElementById('motorLines').addEventListener('input', calculateConversionParams);
+        document.getElementById('microstep').addEventListener('input', calculateConversionParams);
+        document.getElementById('accelSegments').addEventListener('input', function() {
+            calculateAccelDistance();
+            checkTotalDistance();
+        });
+        document.getElementById('accelStepsPerSegment').addEventListener('input', function() {
+            calculateAccelDistance();
+            checkTotalDistance();
+        });
+        document.getElementById('startVelSteps').addEventListener('input', checkTotalDistance);
+        document.getElementById('totalDistanceSteps').addEventListener('input', checkTotalDistance);
+        
+        // 确保减速起始速度与加速结束速度相同
+        document.getElementById('accelEndVelRps').addEventListener('input', function() {
+            document.getElementById('decelStartVelRps').value = this.value;
+        });
+        
+        // 确保减速结束速度与加速起始速度相同
+        document.getElementById('startVelRps').addEventListener('input', function() {
+            document.getElementById('decelEndVelRps').value = this.value;
+        });
+
+        // 测试加速和减速曲线公式
+        function testBothFormulas() {
+            const resultEl = document.getElementById('formulaTestResult');
+            try {
+                // 获取公式和测试参数
+                let accelFormula = document.getElementById('accelFormula').value;
+                let decelFormula = document.getElementById('decelFormula').value;
+                const testSegments = 5; // 测试用的台阶数
+                const testV0 = 0.5;     // 测试用的起始速度
+                const testV1 = 5;       // 测试用的结束速度
+                
+                // 移除公式中的注释以避免解析错误
+                accelFormula = accelFormula.replace(/\/\/.*$/gm, '').trim();
+                decelFormula = decelFormula.replace(/\/\/.*$/gm, '').trim();
+                
+                if (!accelFormula || !decelFormula) {
+                    throw new Error("加速和减速公式都不能为空");
+                }
+                
+                // 创建公式函数
+                let accelFunc, decelFunc;
+                try {
+                    accelFunc = new Function('i', 'n', 'v0', 'v1', 'ratio', `return ${accelFormula};`);
+                    decelFunc = new Function('i', 'n', 'v0', 'v1', 'ratio', `return ${decelFormula};`);
+                } catch (parseError) {
+                    throw new Error(`公式语法错误: ${parseError.message}`);
+                }
+                
+                // 测试计算
+                let output = "<strong>公式测试结果（5个台阶）：</strong><br>";
+                
+                // 加速阶段测试
+                output += "<br><strong>加速阶段（v0=0.5 → v1=5）：</strong><br>";
+                output += "i | ratio | 计算速度 (圈/s)<br>";
+                output += "------------------------<br>";
+                
+                for (let i = 0; i < testSegments; i++) {
+                    const ratio = testSegments > 1 ? i / (testSegments - 1) : 1;
+                    let velocity;
+                    
+                    try {
+                        velocity = accelFunc(i, testSegments, testV0, testV1, ratio);
+                    } catch (execError) {
+                        throw new Error(`加速公式执行错误（台阶 ${i}）: ${execError.message}`);
+                    }
+                    
+                    if (typeof velocity !== 'number' || isNaN(velocity) || !isFinite(velocity)) {
+                        throw new Error(`加速台阶 ${i} 计算结果不是有效数字: ${velocity}`);
+                    }
+                    
+                    output += `${i} | ${ratio.toFixed(2)} | ${velocity.toFixed(4)}<br>`;
+                }
+                
+                // 减速阶段测试
+                output += "<br><strong>减速阶段（v0=5 → v1=0.5）：</strong><br>";
+                output += "i | ratio | 计算速度 (圈/s)<br>";
+                output += "------------------------<br>";
+                
+                for (let i = 0; i < testSegments; i++) {
+                    const ratio = testSegments > 1 ? i / (testSegments - 1) : 1;
+                    let velocity;
+                    
+                    try {
+                        velocity = decelFunc(i, testSegments, testV1, testV0, ratio);
+                    } catch (execError) {
+                        throw new Error(`减速公式执行错误（台阶 ${i}）: ${execError.message}`);
+                    }
+                    
+                    if (typeof velocity !== 'number' || isNaN(velocity) || !isFinite(velocity)) {
+                        throw new Error(`减速台阶 ${i} 计算结果不是有效数字: ${velocity}`);
+                    }
+                    
+                    output += `${i} | ${ratio.toFixed(2)} | ${velocity.toFixed(4)}<br>`;
+                }
+                
+                // 检查首尾是否匹配
+                const firstAccel = accelFunc(0, testSegments, testV0, testV1, 0);
+                const lastAccel = accelFunc(testSegments-1, testSegments, testV0, testV1, 1);
+                const firstDecel = decelFunc(0, testSegments, testV1, testV0, 0);
+                const lastDecel = decelFunc(testSegments-1, testSegments, testV1, testV0, 1);
+                
+                output += "<br><strong>边界检查：</strong><br>";
+                output += `加速起始点: ${firstAccel.toFixed(4)} (应接近 ${testV0})<br>`;
+                output += `加速结束点: ${lastAccel.toFixed(4)} (应接近 ${testV1})<br>`;
+                output += `减速起始点: ${firstDecel.toFixed(4)} (应接近 ${testV1})<br>`;
+                output += `减速结束点: ${lastDecel.toFixed(4)} (应接近 ${testV0})<br>`;
+                
+                // 显示成功结果
+                resultEl.innerHTML = output;
+                resultEl.className = "formula-test-result success";
+                resultEl.style.display = 'block';
+                
+                return true;
+            } catch (error) {
+                // 显示错误结果
+                resultEl.innerHTML = `<strong>公式错误：</strong>${error.message}`;
+                resultEl.className = "formula-test-result error";
+                resultEl.style.display = 'block';
+                console.error("公式测试错误:", error);
+                return false;
+            }
+        }
+
+        // 加载预设公式
+        function loadPresetFormula(type) {
+            const formulaInfo = curveFormulas[type];
+            if (!formulaInfo) return;
+            
+            const accelFormulaEl = document.getElementById('accelFormula');
+            const decelFormulaEl = document.getElementById('decelFormula');
+            const descriptionEl = document.getElementById('formulaDescription');
+            
+            accelFormulaEl.value = formulaInfo.accelFormula;
+            decelFormulaEl.value = formulaInfo.decelFormula;
+            descriptionEl.textContent = formulaInfo.description;
+            
+            // 隐藏之前的测试结果
+            document.getElementById('formulaTestResult').style.display = 'none';
+        }
+
+        // 曲线计算器类 - 为加速和减速阶段使用不同的公式
+        class CurveCalculator {
+            static calculate(
+                startVelRps, accelEndVelRps, decelStartVelRps, decelEndVelRps, 
+                startVelSteps, accelSegments, accelStepsPerSegment, totalDistanceSteps,
+                pulsesPerRevolution, accelFormula, decelFormula
+            ) {
+                // 移除公式中的注释
+                let aFormula = accelFormula.replace(/\/\/.*$/gm, '').trim();
+                let dFormula = decelFormula.replace(/\/\/.*$/gm, '').trim();
+                
+                if (!aFormula || !dFormula) {
+                    throw new Error("加速和减速公式都不能为空");
+                }
+                
+                // 计算各段步数
+                const accelTotalSteps = accelSegments * accelStepsPerSegment;
+                const decelTotalSteps = accelTotalSteps; // 减速段与加速段步数相同
+                const minRequiredSteps = startVelSteps + accelTotalSteps + decelTotalSteps;
+                
+                // 计算匀速段步数
+                let cruiseSteps = totalDistanceSteps - minRequiredSteps;
+                if (cruiseSteps < 0) {
+                    throw new Error(`总路程不足！需要至少 ${minRequiredSteps} 步，但仅提供了 ${totalDistanceSteps} 步`);
+                }
+
+                // 验证速度参数匹配
+                if (Math.abs(decelStartVelRps - accelEndVelRps) > 0.01) {
+                    throw new Error("减速起始速度必须与加速结束速度相同");
+                }
+                if (Math.abs(decelEndVelRps - startVelRps) > 0.01) {
+                    throw new Error("减速结束速度必须与加速起始速度相同");
+                }
+
+                // 验证其他参数
+                if (startVelRps < 0 || accelEndVelRps <= startVelRps || 
+                    decelStartVelRps < decelEndVelRps || decelEndVelRps < 0) {
+                    throw new Error("速度参数设置无效");
+                }
+                if (accelStepsPerSegment <= 0 || accelSegments <= 0) {
+                    throw new Error("步数和台阶数参数必须大于0");
+                }
+
+                // 创建加速和减速公式函数
+                let accelFunc, decelFunc;
+                try {
+                    accelFunc = new Function('i', 'n', 'v0', 'v1', 'ratio', `return ${aFormula};`);
+                    decelFunc = new Function('i', 'n', 'v0', 'v1', 'ratio', `return ${dFormula};`);
+                } catch (error) {
+                    throw new Error(`公式解析错误: ${error.message}`);
+                }
+
+                // 计算加速阶段各台阶速度（圈/s）- 使用加速公式
+                const accelVelocitiesRps = [];
+                for (let i = 0; i < accelSegments; i++) {
+                    const ratio = accelSegments > 1 ? i / (accelSegments - 1) : 1;
+                    
+                    // 使用加速公式计算速度，参数正确传递v0→v1
+                    let vel;
+                    try {
+                        vel = accelFunc(i, accelSegments, startVelRps, accelEndVelRps, ratio);
+                    } catch (error) {
+                        throw new Error(`加速公式计算错误（台阶 ${i}）: ${error.message}`);
+                    }
+                    
+                    if (typeof vel !== 'number' || isNaN(vel) || !isFinite(vel) || vel < 0) {
+                        throw new Error(`加速公式返回无效速度值（台阶 ${i}）: ${vel}`);
+                    }
+                    
+                    accelVelocitiesRps.push(Math.round(vel * 100) / 100);
+                }
+
+                // 计算减速阶段各台阶速度（圈/s）- 使用专属减速公式
+                const decelVelocitiesRps = [];
+                for (let i = 0; i < accelSegments; i++) {
+                    const ratio = accelSegments > 1 ? i / (accelSegments - 1) : 1;
+                    
+                    // 使用减速公式计算速度，参数正确传递v0→v1（从高速到低速）
+                    let vel;
+                    try {
+                        vel = decelFunc(i, accelSegments, decelStartVelRps, decelEndVelRps, ratio);
+                    } catch (error) {
+                        throw new Error(`减速公式计算错误（台阶 ${i}）: ${error.message}`);
+                    }
+                    
+                    if (typeof vel !== 'number' || isNaN(vel) || !isFinite(vel) || vel < 0) {
+                        throw new Error(`减速公式返回无效速度值（台阶 ${i}）: ${vel}`);
+                    }
+                    
+                    decelVelocitiesRps.push(Math.round(vel * 100) / 100);
+                }
+
+                // 构建完整速度数据（用于图表）
+                const fullVelocityData = [];
+                let cumulativeSteps = 0;
+                let cumulativeTime = 0; // 累计时间(ms)
+
+                // 起始速度阶段
+                if (startVelSteps > 0) {
+                    const steps = startVelSteps;
+                    cumulativeSteps += steps;
+                    
+                    // 转换为steps/s和Hz
+                    const velRps = startVelRps;
+                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
+                    const frequency = stepsPerSecondToHz(velSteps);
+                    const periodMs = hzToPeriodMs(parseFloat(frequency));
+                    
+                    // 计算本台阶所需时间(ms) = 步数 × 周期(ms)
+                    const stepTime = steps * parseFloat(periodMs);
+                    cumulativeTime += stepTime;
+                    
+                    fullVelocityData.push({
+                        phase: "起始速度",
+                        step: 1,
+                        velocityRps: velRps,
+                        velocitySteps: Math.round(velSteps * 100) / 100,
+                        frequency: frequency,
+                        periodMs: periodMs,
+                        steps: steps,
+                        cumulativeSteps: cumulativeSteps,
+                        cumulativeTime: cumulativeTime.toFixed(2)
+                    });
+                }
+
+                // 加速阶段 - 用于图表
+                let accelCumulativeSteps = 0;
+                let accelCumulativeTime = 0;
+                const accelOnlyData = []; // 仅加速段数据，用于表格
+                
+                for (let i = 0; i < accelSegments; i++) {
+                    const steps = accelStepsPerSegment;
+                    cumulativeSteps += steps;
+                    accelCumulativeSteps += steps;
+                    
+                    // 转换为steps/s和Hz
+                    const velRps = accelVelocitiesRps[i];
+                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
+                    const frequency = stepsPerSecondToHz(velSteps);
+                    const periodMs = hzToPeriodMs(parseFloat(frequency));
+                    
+                    // 计算本台阶所需时间(ms)
+                    const stepTime = steps * parseFloat(periodMs);
+                    cumulativeTime += stepTime;
+                    accelCumulativeTime += stepTime;
+                    
+                    // 添加到完整数据（图表用）
+                    fullVelocityData.push({
+                        phase: "加速",
+                        step: i + 1,
+                        velocityRps: velRps,
+                        velocitySteps: Math.round(velSteps * 100) / 100,
+                        frequency: frequency,
+                        periodMs: periodMs,
+                        steps: steps,
+                        cumulativeSteps: cumulativeSteps,
+                        cumulativeTime: cumulativeTime.toFixed(2)
+                    });
+                    
+                    // 添加到加速段数据（表格用）
+                    accelOnlyData.push({
+                        step: i + 1,
+                        velocityRps: velRps,
+                        velocitySteps: Math.round(velSteps * 100) / 100,
+                        frequency: frequency,
+                        periodMs: periodMs,
+                        steps: steps,
+                        cumulativeAccelSteps: accelCumulativeSteps,
+                        stepTime: stepTime.toFixed(2),
+                        cumulativeAccelTime: accelCumulativeTime.toFixed(2)
+                    });
+                }
+
+                // 匀速阶段
+                if (cruiseSteps > 0) {
+                    cumulativeSteps += cruiseSteps;
+                    
+                    // 转换为steps/s和Hz
+                    const velRps = accelEndVelRps;
+                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
+                    const frequency = stepsPerSecondToHz(velSteps);
+                    const periodMs = hzToPeriodMs(parseFloat(frequency));
+                    
+                    // 计算本台阶所需时间(ms)
+                    const stepTime = cruiseSteps * parseFloat(periodMs);
+                    cumulativeTime += stepTime;
+                    
+                    fullVelocityData.push({
+                        phase: "匀速",
+                        step: 1,
+                        velocityRps: velRps,
+                        velocitySteps: Math.round(velSteps * 100) / 100,
+                        frequency: frequency,
+                        periodMs: periodMs,
+                        steps: cruiseSteps,
+                        cumulativeSteps: cumulativeSteps,
+                        cumulativeTime: cumulativeTime.toFixed(2)
+                    });
+                }
+
+                // 减速阶段
+                for (let i = 0; i < accelSegments; i++) {
+                    const steps = accelStepsPerSegment;
+                    cumulativeSteps += steps;
+                    
+                    // 转换为steps/s和Hz
+                    const velRps = decelVelocitiesRps[i];
+                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
+                    const frequency = stepsPerSecondToHz(velSteps);
+                    const periodMs = hzToPeriodMs(parseFloat(frequency));
+                    
+                    // 计算本台阶所需时间(ms)
+                    const stepTime = steps * parseFloat(periodMs);
+                    cumulativeTime += stepTime;
+                    
+                    fullVelocityData.push({
+                        phase: "减速",
+                        step: i + 1,
+                        velocityRps: velRps,
+                        velocitySteps: Math.round(velSteps * 100) / 100,
+                        frequency: frequency,
+                        periodMs: periodMs,
+                        steps: steps,
+                        cumulativeSteps: cumulativeSteps,
+                        cumulativeTime: cumulativeTime.toFixed(2)
+                    });
+                }
+
+                return {
+                    fullVelocityData,      // 完整数据，用于图表
+                    accelOnlyData,         // 仅加速段数据，用于表格
+                    accelTotalSteps,
+                    decelTotalSteps,
+                    cruiseSteps,
+                    minRequiredSteps,
+                    totalSteps: cumulativeSteps
+                };
+            }
+        }
+
+        // 绘制图表
+        function drawChart(data) {
+            const canvas = document.getElementById('speedChart');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!data || data.length === 0) return;
+
+            // 设置边距
+            const margin = { top: 30, right: 100, bottom: 60, left: 60 };
+            const width = canvas.width - margin.left - margin.right;
+            const height = canvas.height - margin.top - margin.bottom;
+
+            // 准备数据
+            const points = [];
+            
+            // 添加第一个点（起点）
+            const firstPoint = { 
+                x: 0, 
+                y: data[0].velocitySteps,
+                period: parseFloat(data[0].periodMs),
+                phase: data[0].phase
+            };
+            points.push(firstPoint);
+            
+            // 为每个数据段添加足够的点以显示曲线特征
+            data.forEach(item => {
+                if (points.length > 0) {
+                    const prev = points[points.length - 1];
+                    const currentX = parseFloat(item.cumulativeTime);
+                    const currentY = item.velocitySteps;
+                    const currentPeriod = parseFloat(item.periodMs);
+                    
+                    // 添加中间点，使曲线特征更明显
+                    const steps = 5; // 每个段添加5个中间点
+                    for (let s = 1; s <= steps; s++) {
+                        const ratio = s / steps;
+                        const x = prev.x + (currentX - prev.x) * ratio;
+                        const y = prev.y + (currentY - prev.y) * ratio;
+                        const period = prev.period + (currentPeriod - prev.period) * ratio;
+                        
+                        points.push({ 
+                            x, 
+                            y,
+                            period,
+                            phase: item.phase
+                        });
+                    }
+                }
+            });
+
+            // 计算坐标轴范围
+            const maxX = parseFloat(points[points.length - 1].x);
+            const maxY = Math.max(...points.map(p => p.y)) * 1.1;
+            const minY = Math.min(...points.map(p => p.y)) * 0.9;
+            
+            // 周期数据范围
+            const maxPeriod = Math.max(...points.map(p => p.period)) * 1.1;
+            const minPeriod = Math.min(...points.map(p => p.period)) * 0.9;
+
+            // 坐标转换函数 - 主Y轴(速度)
+            const xToCanvas = (x) => margin.left + (x / maxX) * width;
+            const yToCanvas = (y) => margin.top + height - ((y - minY) / (maxY - minY) * height);
+            
+            // 坐标转换函数 - 副Y轴(周期)
+            const periodToCanvas = (period) => {
+                if (maxPeriod === minPeriod) return margin.top + height / 2;
+                return margin.top + height - ((period - minPeriod) / (maxPeriod - minPeriod) * height);
+            };
+
+            // 批量绘制静态元素
+            ctx.save();
+            
+            // 绘制网格
+            drawGrid(ctx, margin, width, height, maxX, maxY, minY, maxPeriod, minPeriod);
+            
+            // 绘制坐标轴
+            drawAxes(ctx, margin, width, height);
+            
+            // 绘制阶段标记线
+            drawPhaseMarkers(ctx, data, xToCanvas, margin, height);
+            
+            // 绘制标题
+            drawChartTitle(ctx, canvas);
+            
+            ctx.restore();
+            
+            // 同时绘制速度曲线和周期曲线
+            requestAnimationFrame(() => {
+                // 绘制速度曲线
+                drawCurve(ctx, points, xToCanvas, yToCanvas, 'blue', 2, false);
+                
+                // 绘制定时器周期曲线
+                drawCurve(ctx, points, xToCanvas, periodToCanvas, 'purple', 2, true);
+                
+                // 绘制所有数据点
+                drawAllDataPoints(ctx, points, xToCanvas, yToCanvas, periodToCanvas);
+                
+                // 隐藏计算指示器
+                document.getElementById('calculatingIndicator').style.display = 'none';
+            });
+        }
+
+        // 直接绘制完整曲线
+        function drawCurve(ctx, points, xFunc, yFunc, color, lineWidth, isDashed) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            
+            if (isDashed) {
+                ctx.setLineDash([2, 2]);
+            }
+            
+            ctx.beginPath();
+            ctx.moveTo(xFunc(points[0].x), yFunc(points[0].y || points[0].period));
+            
+            for (let i = 1; i < points.length; i++) {
+                ctx.lineTo(xFunc(points[i].x), yFunc(points[i].y || points[i].period));
+            }
+            
+            ctx.stroke();
+            
+            if (isDashed) {
+                ctx.setLineDash([]);
+            }
+        }
+
+        // 一次性绘制所有数据点
+        function drawAllDataPoints(ctx, points, xFunc, yFunc, periodFunc) {
+            // 绘制速度曲线数据点
+            ctx.fillStyle = 'red';
+            points.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(xFunc(point.x), yFunc(point.y), 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            // 绘制定时器周期曲线数据点
+            ctx.fillStyle = 'purple';
+            points.forEach(point => {
+                ctx.beginPath();
+                ctx.arc(xFunc(point.x), periodFunc(point.period), 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        // 绘制网格
+        function drawGrid(ctx, margin, width, height, maxX, maxY, minY, maxPeriod, minPeriod) {
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            
+            // 水平网格线
+            const yGridCount = 5;
+            for (let i = 0; i <= yGridCount; i++) {
+                const y = minY + (maxY - minY) * (i / yGridCount);
+                const yPos = margin.top + height - ((y - minY) / (maxY - minY) * height);
+                ctx.beginPath();
+                ctx.moveTo(margin.left, yPos);
+                ctx.lineTo(margin.left + width, yPos);
+                ctx.stroke();
+                
+                // 绘制主Y轴刻度
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'right';
+                ctx.fillText(Math.round(y), margin.left - 5, yPos + 4);
+            }
+
+            // 垂直网格线
+            const xGridCount = 5;
+            for (let i = 0; i <= xGridCount; i++) {
+                const x = maxX * (i / xGridCount);
+                const xPos = margin.left + (x / maxX) * width;
+                ctx.beginPath();
+                ctx.moveTo(xPos, margin.top);
+                ctx.lineTo(xPos, margin.top + height);
+                ctx.stroke();
+                
+                // 绘制X轴刻度
+                ctx.fillStyle = '#333';
+                ctx.textAlign = 'center';
+                ctx.fillText(Math.round(x) + 'ms', xPos, margin.top + height + 15);
+            }
+
+            // 绘制副Y轴网格线和刻度（周期）
+            const periodGridCount = 5;
+            ctx.strokeStyle = '#ddd';
+            for (let i = 0; i <= periodGridCount; i++) {
+                const period = minPeriod + (maxPeriod - minPeriod) * (i / periodGridCount);
+                const yPos = margin.top + height - ((period - minPeriod) / (maxPeriod - minPeriod) * height);
+                
+                // 网格线
+                ctx.beginPath();
+                ctx.setLineDash([3, 3]);
+                ctx.moveTo(margin.left, yPos);
+                ctx.lineTo(margin.left + width, yPos);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 刻度
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'left';
+                ctx.fillText(period.toFixed(2) + 'ms', margin.left + width + 5, yPos + 4);
+            }
+        }
+
+        // 绘制坐标轴
+        function drawAxes(ctx, margin, width, height) {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X轴（时间轴）
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top + height);
+            ctx.lineTo(margin.left + width, margin.top + height);
+            ctx.stroke();
+            
+            // 主Y轴（速度）
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + height);
+            ctx.stroke();
+            
+            // 副Y轴（周期）
+            ctx.beginPath();
+            ctx.moveTo(margin.left + width, margin.top);
+            ctx.lineTo(margin.left + width, margin.top + height);
+            ctx.stroke();
+
+            // 绘制坐标轴标签
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#333';
+            ctx.textAlign = 'center';
+            ctx.fillText('时间 (ms)', margin.left + width / 2, margin.top + height + 35);
+            
+            // 主Y轴标签
+            ctx.save();
+            ctx.translate(margin.left - 40, margin.top + height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('速度 (steps/s)', 0, 0);
+            ctx.restore();
+            
+            // 副Y轴标签
+            ctx.save();
+            ctx.translate(margin.left + width + 40, margin.top + height / 2);
+            ctx.rotate(Math.PI / 2);
+            ctx.fillText('定时器周期 (ms)', 0, 0);
+            ctx.restore();
+        }
+
+        // 绘制阶段标记线
+        function drawPhaseMarkers(ctx, data, xToCanvas, margin, height) {
+            let startVelEndX = 0;
+            let accelEndX = 0;
+            let cruiseEndX = 0;
+            let inStartVel = true;
+            let inAccel = false;
+            let inCruise = false;
+            
+            data.forEach(item => {
+                if (item.phase === '起始速度' && inStartVel) {
+                    startVelEndX = parseFloat(item.cumulativeTime);
+                    inStartVel = false;
+                    inAccel = true;
+                } else if (item.phase === '加速' && inAccel) {
+                    accelEndX = parseFloat(item.cumulativeTime);
+                } else if (item.phase === '匀速' && !inCruise) {
+                    cruiseEndX = parseFloat(item.cumulativeTime);
+                    inAccel = false;
+                    inCruise = true;
+                }
+            });
+
+            // 绘制起始速度结束线
+            if (startVelEndX > 0) {
+                ctx.strokeStyle = 'blue';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(xToCanvas(startVelEndX), margin.top);
+                ctx.lineTo(xToCanvas(startVelEndX), margin.top + height);
+                ctx.stroke();
+                
+                // 标记文本
+                ctx.fillStyle = 'blue';
+                ctx.textAlign = 'center';
+                ctx.fillText('起始速度结束', xToCanvas(startVelEndX), margin.top - 5);
+                ctx.setLineDash([]);
+            }
+
+            // 绘制加速结束线
+            if (accelEndX > 0) {
+                ctx.strokeStyle = 'green';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(xToCanvas(accelEndX), margin.top);
+                ctx.lineTo(xToCanvas(accelEndX), margin.top + height);
+                ctx.stroke();
+                
+                // 标记文本
+                ctx.fillStyle = 'green';
+                ctx.textAlign = 'center';
+                ctx.fillText('加速结束', xToCanvas(accelEndX), margin.top - 5);
+                ctx.setLineDash([]);
+            }
+
+            // 绘制匀速结束线
+            if (cruiseEndX > 0) {
+                ctx.strokeStyle = 'orange';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(xToCanvas(cruiseEndX), margin.top);
+                ctx.lineTo(xToCanvas(cruiseEndX), margin.top + height);
+                ctx.stroke();
+                
+                // 标记文本
+                ctx.fillStyle = 'orange';
+                ctx.textAlign = 'center';
+                ctx.fillText('匀速结束', xToCanvas(cruiseEndX), margin.top - 5);
+                ctx.setLineDash([]);
+            }
+        }
+
+        // 绘制图表标题
+        function drawChartTitle(ctx, canvas) {
+            ctx.fillStyle = '#333';
+            ctx.font = '16px Arial bold';
+            ctx.textAlign = 'center';
+            ctx.fillText('步进电机加减速完整曲线与定时器周期', canvas.width / 2, 20);
+        }
+
+        // 更新表格 - 仅显示加速段
+        function updateTable(accelData) {
+            const tableBody = document.querySelector('#resultTable tbody');
+            tableBody.innerHTML = ''; // 清空表格
+
+            if (!accelData || accelData.length === 0) return;
+
+            // 创建所有行并一次性添加到DOM
+            const fragment = document.createDocumentFragment();
+            const rows = [];
+            
+            accelData.forEach((item) => {
+                const row = document.createElement('tr');
+                row.className = 'data-row';
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(10px)';
+                row.style.transition = 'opacity 0.1s ease, transform 0.1s ease';
+                
+                row.innerHTML = `
+                    <td>${item.step}</td>
+                    <td>${item.velocityRps}</td>
+                    <td>${item.velocitySteps}</td>
+                    <td>${item.frequency}</td>
+                    <td>${item.periodMs}</td>
+                    <td>${item.steps}</td>
+                    <td>${item.cumulativeAccelSteps}</td>
+                    <td>${item.stepTime}</td>
+                    <td>${item.cumulativeAccelTime}</td>
+                `;
+                
+                rows.push(row);
+                fragment.appendChild(row);
+            });
+            
+            tableBody.appendChild(fragment);
+            
+            // 批量触发动画
+            requestAnimationFrame(() => {
+                rows.forEach((row, index) => {
+                    setTimeout(() => {
+                        row.style.opacity = '1';
+                        row.style.transform = 'translateY(0)';
+                    }, index * 10);
+                });
+            });
+        }
+
+        // 导出到Excel - 仅导出加速段表格
+        function exportToExcel() {
+            const table = document.getElementById('resultTable');
+            if (!table || table.rows.length <= 1) {
+                alert('没有可导出的数据，请先计算曲线');
+                return;
+            }
+
+            // 创建CSV内容
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // 添加表头
+            const headers = [];
+            for (let i = 0; i < table.rows[0].cells.length; i++) {
+                headers.push(table.rows[0].cells[i].textContent);
+            }
+            csvContent += headers.join(",") + "\r\n";
+            
+            // 添加数据行
+            for (let i = 1; i < table.rows.length; i++) {
+                const rowData = [];
+                for (let j = 0; j < table.rows[i].cells.length; j++) {
+                    rowData.push(table.rows[i].cells[j].textContent);
+                }
+                csvContent += rowData.join(",") + "\r\n";
+            }
+            
+            // 创建下载链接
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "步进电机加速段速度表.csv");
+            document.body.appendChild(link);
+            
+            // 触发下载
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 计算曲线主函数
+        function calculateSCurve() {
+            try {
+                // 显示计算指示器
+                document.getElementById('calculatingIndicator').style.display = 'block';
+                
+                // 检查总路程是否足够
+                if (!checkTotalDistance()) {
+                    throw new Error("总路程小于最小必需步数，请增加总路程或调整其他参数");
+                }
+                
+                // 先计算转换参数
+                const pulsesPerRevolution = calculateConversionParams();
+                if (pulsesPerRevolution === null) {
+                    document.getElementById('calculatingIndicator').style.display = 'none';
+                    return;
+                }
+                
+                // 获取输入参数和自定义公式
+                const startVelSteps = parseInt(document.getElementById('startVelSteps').value);
+                const accelSegments = parseInt(document.getElementById('accelSegments').value);
+                const accelStepsPerSegment = parseInt(document.getElementById('accelStepsPerSegment').value);
+                const startVelRps = parseFloat(document.getElementById('startVelRps').value);
+                const accelEndVelRps = parseFloat(document.getElementById('accelEndVelRps').value);
+                const decelStartVelRps = parseFloat(document.getElementById('decelStartVelRps').value);
+                const decelEndVelRps = parseFloat(document.getElementById('decelEndVelRps').value);
+                const totalDistanceSteps = parseInt(document.getElementById('totalDistanceSteps').value);
+                const accelFormula = document.getElementById('accelFormula').value;
+                const decelFormula = document.getElementById('decelFormula').value;
+
+                // 先测试公式是否有效
+                if (!testBothFormulas()) {
+                    throw new Error('公式无效，请先修正公式错误');
+                }
+
+                // 计算曲线
+                const result = CurveCalculator.calculate(
+                    startVelRps, accelEndVelRps, decelStartVelRps, decelEndVelRps,
+                    startVelSteps, accelSegments, accelStepsPerSegment, totalDistanceSteps,
+                    pulsesPerRevolution, accelFormula, decelFormula
+                );
+
+                // 更新计算结果显示
+                document.getElementById('accelTotalSteps').textContent = result.accelTotalSteps;
+                document.getElementById('decelTotalSteps').textContent = result.decelTotalSteps;
+                document.getElementById('cruiseStepsResult').textContent = result.cruiseSteps;
+                document.getElementById('minRequiredSteps').textContent = result.minRequiredSteps;
+                document.getElementById('totalSteps').textContent = result.totalSteps;
+
+                // 更新表格（仅加速段）和图表（完整曲线）
+                updateTable(result.accelOnlyData);
+                drawChart(result.fullVelocityData);
+
+            } catch (error) {
+                alert('计算错误: ' + error.message);
+                console.error(error);
+                document.getElementById('calculatingIndicator').style.display = 'none';
+            }
+        }
+
+        // 初始化画布大小
+        function resizeCanvas() {
+            const canvas = document.getElementById('speedChart');
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        // 窗口大小改变时重绘图表
+        window.addEventListener('resize', () => {
+            const tableData = document.querySelector('#resultTable tbody tr');
+            if (tableData) {
+                calculateSCurve();
+            }
+        });
+
+        // 初始化页面
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            calculateConversionParams();
+            calculateAccelDistance();
+            checkTotalDistance();
+            
+            // 确保速度参数初始匹配
+            document.getElementById('decelStartVelRps').value = document.getElementById('accelEndVelRps').value;
+            document.getElementById('decelEndVelRps').value = document.getElementById('startVelRps').value;
+        });
+    </script>
+</body>
+</html>
+    

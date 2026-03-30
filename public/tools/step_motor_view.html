@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>步进电机多种曲线加减速计算器（完整修复版）</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+        }
+        
+        .chart-container {
+            width: 90%;
+            max-width: 900px;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: white;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .param-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .dual-axis-info {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .axis-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .axis-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .formula-description {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <h2>步进电机曲线参数</h2>
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <div class="param-group">
+                        <label for="curveType">曲线类型</label>
+                        <select id="curveType">
+                            <option value="s-curve">S型曲线</option>
+                            <option value="trapezoidal">梯形曲线</option>
+                            <option value="linear">线性曲线</option>
+                            <option value="quadratic">二次曲线</option>
+                            <option value="cubic">三次曲线</option>
+                            <option value="sqrt">平方根曲线</option>
+                            <option value="sinusoidal">正弦曲线</option>
+                            <option value="exponential">指数曲线</option>
+                        </select>
+                        <div id="curveDescription" class="formula-description">
+                            S型曲线：开始和结束时加速度较低，中间较高，运动平滑
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <label for="startVel">起始速度 (圈/秒)</label>
+                        <input type="number" id="startVel" value="0.5" step="0.1" min="0">
+                    </div>
+                    
+                    <div class="param-group">
+                        <label for="maxVel">最大速度 (圈/秒)</label>
+                        <input type="number" id="maxVel" value="5" step="0.5" min="0">
+                    </div>
+                </div>
+                
+                <div style="flex: 1;">
+                    <div class="param-group">
+                        <label for="accelTime">加速时间 (ms)</label>
+                        <input type="number" id="accelTime" value="400" min="1" step="10">
+                    </div>
+                    
+                    <div class="param-group">
+                        <label for="cruiseTime">匀速时间 (ms)</label>
+                        <input type="number" id="cruiseTime" value="200" min="0" step="10">
+                    </div>
+                    
+                    <div class="param-group">
+                        <label for="decelTime">减速时间 (ms)</label>
+                        <input type="number" id="decelTime" value="400" min="1" step="10">
+                    </div>
+                </div>
+                
+                <div style="flex: 1;">
+                    <div class="param-group">
+                        <label for="motorSteps">电机每圈步数</label>
+                        <input type="number" id="motorSteps" value="200" min="1">
+                    </div>
+                    
+                    <div class="param-group">
+                        <label for="microsteps">细分数</label>
+                        <input type="number" id="microsteps" value="1" min="1">
+                    </div>
+                    
+                    <button onclick="calculateCurve()" style="margin-top: 20px;">
+                        计算曲线
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>速度曲线</h2>
+            <canvas id="speedChart"></canvas>
+            <div class="dual-axis-info">
+                <div class="axis-label">
+                    <div class="axis-color" style="background-color: #3498db;"></div>
+                    <span>速度 (steps/s)</span>
+                </div>
+                <div class="axis-label">
+                    <div class="axis-color" style="background-color: #9b59b6;"></div>
+                    <span>定时器周期 (ms)</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h2>加速度曲线</h2>
+            <canvas id="accelChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // 曲线公式定义
+        const curveFormulas = {
+            's-curve': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * (ratio * ratio * (3 - 2 * ratio)),
+                description: "S型曲线：开始和结束时加速度较低，中间较高，运动平滑"
+            },
+            'trapezoidal': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * ratio,
+                description: "梯形曲线：加速度恒定，速度线性增加"
+            },
+            'linear': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * ratio,
+                description: "线性曲线：速度随时间均匀增加，加速度恒定"
+            },
+            'quadratic': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * (ratio * ratio),
+                description: "二次曲线：开始加速较慢，随后加速越来越快"
+            },
+            'cubic': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * (ratio * ratio * ratio),
+                description: "三次曲线：比二次曲线变化更剧烈，后期加速非常快"
+            },
+            'sqrt': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * Math.sqrt(ratio),
+                description: "平方根曲线：开始加速快，随后逐渐平缓"
+            },
+            'sinusoidal': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * (1 - Math.cos(ratio * Math.PI / 2)),
+                description: "正弦曲线：加速度先增后减，运动平滑，冲击小"
+            },
+            'exponential': {
+                formula: (v0, v1, ratio) => v0 + (v1 - v0) * (1 - Math.exp(-5 * ratio)),
+                description: "指数曲线：开始加速快，迅速接近最大速度"
+            }
+        };
+
+        // 当前图表实例
+        let speedChart = null;
+        let accelChart = null;
+
+        // 更新曲线描述
+        document.getElementById('curveType').addEventListener('change', function() {
+            const type = this.value;
+            document.getElementById('curveDescription').textContent = 
+                curveFormulas[type].description;
+        });
+
+        // 计算曲线
+        function calculateCurve() {
+            try {
+                // 获取参数
+                const curveType = document.getElementById('curveType').value;
+                const v0 = parseFloat(document.getElementById('startVel').value);
+                const v1 = parseFloat(document.getElementById('maxVel').value);
+                const accelTime = parseInt(document.getElementById('accelTime').value);
+                const cruiseTime = parseInt(document.getElementById('cruiseTime').value);
+                const decelTime = parseInt(document.getElementById('decelTime').value);
+                const motorSteps = parseInt(document.getElementById('motorSteps').value);
+                const microsteps = parseInt(document.getElementById('microsteps').value);
+                
+                // 计算每圈脉冲数
+                const pulsesPerRev = motorSteps * microsteps * 2;
+                
+                // 生成时间轴
+                const totalTime = accelTime + cruiseTime + decelTime;
+                const timePoints = Array.from({length: totalTime + 1}, (_, i) => i);
+                
+                // 计算速度曲线
+                const velocityData = calculateVelocityProfile(
+                    curveType, v0, v1, accelTime, cruiseTime, decelTime, pulsesPerRev
+                );
+                
+                // 计算加速度曲线
+                const accelData = calculateAccelerationProfile(velocityData);
+                
+                // 绘制图表
+                drawCharts(timePoints, velocityData, accelData);
+                
+            } catch (error) {
+                console.error("计算错误:", error);
+                alert("计算错误: " + error.message);
+            }
+        }
+
+        // 计算速度曲线（修复版）
+        function calculateVelocityProfile(curveType, v0, v1, accelTime, cruiseTime, decelTime, pulsesPerRev) {
+            const totalTime = accelTime + cruiseTime + decelTime;
+            const velocities = [];
+            const formula = curveFormulas[curveType].formula;
+            
+            // 加速阶段
+            for (let t = 0; t <= accelTime; t++) {
+                const ratio = accelTime > 0 ? t / accelTime : 1;
+                const velRps = formula(v0, v1, ratio);
+                const velSteps = velRps * pulsesPerRev;
+                velocities.push({
+                    time: t,
+                    velocityRps: velRps,
+                    velocitySteps: velSteps,
+                    phase: '加速'
+                });
+            }
+            
+            // 匀速阶段
+            for (let t = 1; t <= cruiseTime; t++) {
+                const time = accelTime + t;
+                velocities.push({
+                    time: time,
+                    velocityRps: v1,
+                    velocitySteps: v1 * pulsesPerRev,
+                    phase: '匀速'
+                });
+            }
+            
+            // 减速阶段（根据不同曲线类型采用不同计算方式）
+            if (curveType === 's-curve' || curveType === 'sinusoidal') {
+                // S型和正弦曲线使用镜像加速曲线
+                for (let t = 1; t <= decelTime; t++) {
+                    const ratio = decelTime > 0 ? t / decelTime : 1;
+                    const mirrorRatio = 1 - ratio;
+                    const velRps = formula(v0, v1, mirrorRatio);
+                    const velSteps = velRps * pulsesPerRev;
+                    velocities.push({
+                        time: accelTime + cruiseTime + t,
+                        velocityRps: velRps,
+                        velocitySteps: velSteps,
+                        phase: '减速'
+                    });
+                }
+            } else if (curveType === 'sqrt' || curveType === 'exponential') {
+                // 平方根和指数曲线使用反向加速曲线
+                for (let t = 1; t <= decelTime; t++) {
+                    const ratio = decelTime > 0 ? t / decelTime : 1;
+                    const velRps = v1 - formula(0, v1 - v0, ratio);
+                    const velSteps = velRps * pulsesPerRev;
+                    velocities.push({
+                        time: accelTime + cruiseTime + t,
+                        velocityRps: velRps,
+                        velocitySteps: velSteps,
+                        phase: '减速'
+                    });
+                }
+            } else {
+                // 其他曲线（梯形、线性等）使用线性减速
+                for (let t = 1; t <= decelTime; t++) {
+                    const ratio = decelTime > 0 ? t / decelTime : 1;
+                    const velRps = v1 - (v1 - v0) * ratio;
+                    const velSteps = velRps * pulsesPerRev;
+                    velocities.push({
+                        time: accelTime + cruiseTime + t,
+                        velocityRps: velRps,
+                        velocitySteps: velSteps,
+                        phase: '减速'
+                    });
+                }
+            }
+            
+            return velocities;
+        }
+
+        // 计算加速度曲线
+        function calculateAccelerationProfile(velocityData) {
+            const accelData = [];
+            
+            for (let i = 1; i < velocityData.length; i++) {
+                const prev = velocityData[i-1];
+                const curr = velocityData[i];
+                const dt = curr.time - prev.time;
+                
+                if (dt > 0) {
+                    const accel = (curr.velocitySteps - prev.velocitySteps) / dt;
+                    accelData.push({
+                        time: curr.time,
+                        acceleration: accel,
+                        phase: curr.phase
+                    });
+                }
+            }
+            
+            return accelData;
+        }
+
+        // 绘制图表（使用您喜欢的风格）
+        function drawCharts(timePoints, velocityData, accelData) {
+            // 准备速度图表数据
+            const speedLabels = timePoints;
+            const speedValues = velocityData.map(v => v.velocitySteps);
+            const periodValues = velocityData.map(v => v.velocitySteps > 0 ? 1000 / v.velocitySteps : 0);
+            
+            // 准备加速度图表数据
+            const accelLabels = accelData.map(a => a.time);
+            const accelValues = accelData.map(a => a.acceleration);
+            
+            // 颜色配置
+            const phaseColors = {
+                '加速': 'rgba(52, 152, 219, 0.7)',
+                '匀速': 'rgba(46, 204, 113, 0.7)',
+                '减速': 'rgba(231, 76, 60, 0.7)'
+            };
+            
+            const speedBgColors = velocityData.map(v => phaseColors[v.phase]);
+            const accelBgColors = accelData.map(a => phaseColors[a.phase]);
+            
+            // 销毁旧图表
+            if (speedChart) speedChart.destroy();
+            if (accelChart) accelChart.destroy();
+            
+            // 创建速度图表
+            const speedCtx = document.getElementById('speedChart').getContext('2d');
+            speedChart = new Chart(speedCtx, {
+                type: 'line',
+                data: {
+                    labels: speedLabels,
+                    datasets: [
+                        {
+                            label: '速度 (steps/s)',
+                            data: speedValues,
+                            borderColor: '#3498db',
+                            backgroundColor: speedBgColors,
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: '定时器周期 (ms)',
+                            data: periodValues,
+                            borderColor: '#9b59b6',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            borderDash: [5, 5],
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '时间 (ms)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: '速度 (steps/s)'
+                            },
+                            min: 0
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: '定时器周期 (ms)'
+                            },
+                            min: 0,
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += Math.round(context.parsed.y * 100) / 100;
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 创建加速度图表
+            const accelCtx = document.getElementById('accelChart').getContext('2d');
+            accelChart = new Chart(accelCtx, {
+                type: 'line',
+                data: {
+                    labels: accelLabels,
+                    datasets: [{
+                        label: '加速度 (steps/s²)',
+                        data: accelValues,
+                        borderColor: '#e74c3c',
+                        backgroundColor: accelBgColors,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: '时间 (ms)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: '加速度 (steps/s²)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 初始化页面
+        window.addEventListener('load', function() {
+            calculateCurve();
+        });
+    </script>
+</body>
+</html>
