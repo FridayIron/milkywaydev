@@ -38,10 +38,10 @@ html.vp-suppress-anchor .vp-doc .header-anchor {
   margin: 1.5rem 0;
 }
 
-/* ========== 首页宇宙风格 - 银河系感，背景稍亮 ========== */
+/* ========== 首页门户：动态星空 + Agent 式大模块 ========== */
 .layout-home {
-  background: #0f0f28 !important;
   min-height: 100vh;
+  background: #0f0f28 !important;
 }
 
 .layout-home .VPNav,
@@ -56,9 +56,9 @@ html.vp-suppress-anchor .vp-doc .header-anchor {
 }
 
 .layout-home .VPNav {
-  background: rgba(15, 12, 40, 0.88) !important;
+  background: rgba(15, 12, 40, 0.72) !important;
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .layout-home .VPNavBar .link {
@@ -66,10 +66,10 @@ html.vp-suppress-anchor .vp-doc .header-anchor {
 }
 
 .layout-home .VPNavBar .link:hover {
-  color: #74c0fc !important;
+  color: #5eead4 !important;
 }
 
-/* 首页导航下拉菜单 - 提高对比度 */
+/* 首页导航下拉菜单 */
 html.vp-home-cosmic .VPFlyout .button .text,
 html.vp-home-cosmic .VPNavBarMenuGroup .text {
   color: rgba(255, 255, 255, 0.95) !important;
@@ -77,13 +77,12 @@ html.vp-home-cosmic .VPNavBarMenuGroup .text {
 
 html.vp-home-cosmic .VPFlyout:hover .text,
 html.vp-home-cosmic .VPNavBarMenuGroup:hover .text {
-  color: #74c0fc !important;
+  color: #5eead4 !important;
 }
 
-/* 下拉面板背景与文字 - 更亮更清晰 */
 html.vp-home-cosmic .VPMenu {
-  background-color: rgba(30, 38, 62, 0.98) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  background-color: rgba(28, 25, 23, 0.98) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 html.vp-home-cosmic .VPMenu .label,
@@ -95,31 +94,27 @@ html.vp-home-cosmic .VPMenu a {
 
 html.vp-home-cosmic .VPMenu .link:hover,
 html.vp-home-cosmic .VPMenu a:hover {
-  color: #74c0fc !important;
-  background-color: rgba(116, 192, 252, 0.12) !important;
+  color: #5eead4 !important;
+  background-color: rgba(94, 234, 212, 0.1) !important;
 }
 
 .layout-home .VPHome .container {
   padding-bottom: 0;
 }
 
-.layout-home .VPFeatures {
-  position: relative;
-  z-index: 1;
-  margin-top: 0;
-  padding: 3rem 1.5rem 4rem;
-  background: linear-gradient(to bottom, rgba(15, 12, 35, 0.3), #0f0f28) !important;
-  border-radius: 24px 24px 0 0;
-}
-
-.layout-home .VPFeature {
-  background: rgba(25, 30, 55, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-}
-
-/* 关键：Hero 区域背景层要完全透明，让 canvas 画布透出来 */
+/* 隐藏默认英雄区 / features，只保留大模块卡 */
 .layout-home .VPHero,
+.layout-home .VPFeatures {
+  display: none !important;
+}
+
+/* 门户页顶栏只保留站点名，模块选择交给卡片 */
+.layout-home .VPNavBarMenu,
+.layout-home .VPNavBarExtra,
+.layout-home .VPNavBarHamburger {
+  display: none !important;
+}
+
 .layout-home .VPHome,
 .layout-home .VPHome .container {
   background: transparent !important;
@@ -127,38 +122,33 @@ html.vp-home-cosmic .VPMenu a:hover {
   background-image: none !important;
 }
 
-.layout-home .VPHero::before,
-.layout-home .VPHero::after {
+/* 避开固定导航遮挡门户内容 */
+.layout-home .VPContent,
+.layout-home .VPContent.is-home {
+  padding-top: var(--vp-nav-height, 64px) !important;
   background: transparent !important;
-  opacity: 0 !important;
 }
 
-.layout-home .VPFeature .title {
-  color: rgba(255, 255, 255, 1) !important;
-}
-
-.layout-home .VPFeature .details {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
-
-/* 首页时强制全局深色背景 */
+/* 首页全局：透出星空 canvas，勿盖实色渐变 */
 html.vp-home-cosmic,
-html.vp-home-cosmic body,
+html.vp-home-cosmic body {
+  background: #0f0f28 !important;
+}
+
 html.vp-home-cosmic .VPNav,
 html.vp-home-cosmic .VPContent,
 html.vp-home-cosmic .VPDoc {
-  background: #0f0f28 !important;
+  background: transparent !important;
 }
 
 html.vp-home-cosmic .VPContent.has-sidebar {
-  background: #0f0f28 !important;
+  background: transparent !important;
 }
 
-/* 首页侧边栏、移动端菜单深色 */
 html.vp-home-cosmic .VPSidebar,
 html.vp-home-cosmic .VPSidebarGroup,
 html.vp-home-cosmic .VPNavScreen {
-  background: rgba(15, 12, 35, 0.98) !important;
+  background: rgba(15, 12, 40, 0.98) !important;
 }
 
 /* ========== 非首页：浅色模式时用浅色背景，深色模式时用 VitePress 默认深色 ========== */
@@ -280,24 +270,6 @@ html {
   .layout-home .VPHome .container {
     padding-left: clamp(0.75rem, 4vw, 1.25rem);
     padding-right: clamp(0.75rem, 4vw, 1.25rem);
-  }
-
-  .layout-home .VPFeatures {
-    padding: 2rem 1rem 3rem;
-    border-radius: 16px 16px 0 0;
-  }
-
-  .layout-home .VPFeature {
-    padding: 1rem 1.125rem;
-  }
-
-  .layout-home .VPFeature .title {
-    font-size: 1.05rem;
-  }
-
-  .layout-home .VPFeature .details {
-    font-size: 0.9rem;
-    line-height: 1.55;
   }
 
   /* 顶部导航下拉在窄屏上可横向铺开，避免裁切 */

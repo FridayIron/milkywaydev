@@ -134,7 +134,7 @@ function animate() {
   }
 
   const w = window.innerWidth
-  const h = Math.max(window.innerHeight * 0.32, 280)
+  const h = window.innerHeight
 
   if (!initialized && shouldAnimate) {
     initParticles(w, h)
@@ -326,10 +326,11 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   width: 100vw;
-  height: 32vh;
+  height: 100vh;
   display: block;
-  z-index: 9999999;
-  opacity: 0.42;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
   mix-blend-mode: normal;
   border: none;
 }

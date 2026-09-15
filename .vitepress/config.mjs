@@ -13,7 +13,7 @@ export default defineConfig({
   },
   themeConfig: {
     nav: [
-      { text: '首页', link: '/' },
+      { text: '工作台', link: '/' },
       { text: '博客', link: '/pages/blog/' },
       { text: '关于我', link: '/pages/about' },
       { text: '项目经验', link: '/pages/projects' },
@@ -36,7 +36,7 @@ export default defineConfig({
       { text: '生活记录', link: '/pages/life' },
     ],
     sidebar: [
-      { text: '首页', link: '/' },
+      { text: '工作台（模块入口）', link: '/' },
       { text: '博客', link: '/pages/blog/' },
       { text: '关于我', link: '/pages/about' },
       { text: '项目经验', link: '/pages/projects' },

@@ -4,6 +4,7 @@ import { useData, useRoute } from 'vitepress'
 import { computed } from 'vue'
 import CosmicBackground from './components/CosmicBackground.vue'
 import VisitorTracker from './components/VisitorTracker.vue'
+import PortalHub from './components/PortalHub.vue'
 
 const { page } = useData()
 const route = useRoute()
@@ -18,95 +19,105 @@ const VPLayout = DefaultTheme.Layout
 <template>
   <div class="custom-layout" :class="{ 'layout-home': isHome, 'layout-page-light': !isHome }">
     <VisitorTracker />
-    <!-- ClientOnly：避免 SSR 输出 canvas 与客户端首帧不一致导致 Hydration mismatch -->
     <ClientOnly>
-      <div v-if="isHome" class="cosmic-wrapper">
+      <div v-if="isHome" class="cosmic-wrapper" aria-hidden="true">
         <CosmicBackground />
       </div>
     </ClientOnly>
     <div class="layout-content" :class="{ 'layout-home-content': isHome }">
-    <VPLayout>
-      <template v-for="(_, name) in $slots" #[name]="slotData">
-        <slot :name="name" v-bind="slotData" />
-      </template>
-    </VPLayout>
+      <VPLayout>
+        <template v-for="(_, name) in $slots" #[name]="slotData">
+          <slot :name="name" v-bind="slotData" />
+        </template>
+        <template v-if="isHome" #home-hero-before>
+          <PortalHub />
+        </template>
+      </VPLayout>
     </div>
   </div>
 </template>
 
 <style>
-.layout-home .cosmic-wrapper {
+.cosmic-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 32vh;
-  min-height: 260px;
-  z-index: 9999998;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
-@media (max-width: 768px) {
-  .layout-home .cosmic-wrapper {
-    height: 28vh;
-    min-height: 180px;
-  }
+.layout-home-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 门户页：星空底 + Agent 式入口 ===== */
+.layout-home {
+  min-height: 100vh;
+  background: #0f0f28 !important;
 }
 
 .layout-home .layout-content {
   position: relative;
-  z-index: 9999997;
+  z-index: 1;
   background: transparent !important;
 }
 
-.layout-home .VPHero {
-  position: relative;
-  z-index: 1;
+.layout-home .VPNav {
+  background: rgba(15, 12, 40, 0.72) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.layout-home .VPNavBar .link,
+.layout-home .VPNavBarMenuLink,
+html.vp-home-cosmic .VPFlyout .button .text,
+html.vp-home-cosmic .VPNavBarMenuGroup .text {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.layout-home .VPNavBar .link:hover,
+html.vp-home-cosmic .VPFlyout:hover .text {
+  color: #5eead4 !important;
+}
+
+html.vp-home-cosmic .VPMenu {
+  background-color: rgba(28, 25, 23, 0.98) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+html.vp-home-cosmic .VPMenu .link,
+html.vp-home-cosmic .VPMenu a {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.vp-home-cosmic .VPMenu .link:hover,
+html.vp-home-cosmic .VPMenu a:hover {
+  color: #5eead4 !important;
+  background-color: rgba(94, 234, 212, 0.1) !important;
+}
+
+.layout-home .VPHero,
+.layout-home .VPFeatures {
+  display: none !important;
 }
 
 .layout-home .VPHome {
-  --vp-home-hero-name-color: #a5d8ff;
-  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #74c0fc, #b197fc);
-  --vp-c-brand-1: #74c0fc;
-  --vp-c-brand-2: #4dabf7;
-  --vp-c-brand-3: #339af0;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
 }
 
-.layout-home .VPHero .name {
-  text-shadow: 0 0 20px rgba(116, 192, 252, 0.4);
+/* 避开固定导航栏遮挡 */
+.layout-home .VPContent,
+.layout-home .VPContent.is-home {
+  padding-top: var(--vp-nav-height, 64px) !important;
+  background: transparent !important;
 }
 
-.layout-home .VPHero .text {
-  color: rgba(255, 255, 255, 0.95);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-}
-
-.layout-home .VPHero .tagline {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.layout-home .VPHero .actions .VPButton.brand {
-  background: linear-gradient(135deg, #339af0 0%, #748ffc 100%);
-  border: none;
-  box-shadow: 0 4px 15px rgba(51, 154, 240, 0.4);
-}
-
-.layout-home .VPHero .actions .VPButton.brand:hover {
-  box-shadow: 0 6px 20px rgba(51, 154, 240, 0.5);
-  transform: translateY(-1px);
-}
-
-.layout-home .VPFeatures {
-  position: relative;
-  z-index: 1;
-  margin-top: 0;
-  padding: 3rem 1.5rem 4rem;
-  background: linear-gradient(to bottom, rgba(15, 12, 35, 0.25), #0f0f28) !important;
-  border-radius: 24px 24px 0 0;
-}
-
-.layout-home .VPFeature {
-  background: rgba(25, 30, 55, 0.75) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+.layout-home .VPFooter {
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.45) !important;
 }
 </style>

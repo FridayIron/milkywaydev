@@ -57,13 +57,18 @@ npm run preview
 
 ```bash
 npm run deploy
+git add .
+git commit -m "更新站点"
+git push origin main
 ```
 
-构建结果在 `docs/` 目录，可上传到：
-- 腾讯云 COS（对象存储 + 静态网站）
-- 自建 Nginx 服务器
+打开 https://milkywaydev.cn 先进入**工作台门户**，再点模块进入博客/工具等。
 
-详见 `腾讯云部署说明.md`。
+构建结果在 `docs/`。当前正式方式为 **GitHub Pages（main 分支 /docs）**。
+
+- 门户入口清单：`.vitepress/theme/portal-modules.js`
+- 完整步骤：见 `GitHub部署说明.md`
+- 腾讯云 COS（可选）：见 `腾讯云部署说明.md`
 
 ## 技术栈
 
