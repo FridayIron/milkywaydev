@@ -8,6 +8,17 @@ export default defineConfig({
   ignoreDeadLinks: true,  // 忽略 localhost 等构建时不可达链接
   // 关闭主题深浅色切换，避免 localStorage 与 SSR 不一致导致 Hydration mismatch
   appearance: false,
+  head: [
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap',
+      },
+    ],
+  ],
   router: {
     prefetchLinks: true,
   },
