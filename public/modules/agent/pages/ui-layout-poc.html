@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>配置化界面 PoC 草图（B3）</title>
+  <style>
+    body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0; background: #f5f7fb; color: #0f2b4f; }
+    header { padding: 20px 24px; background: #fff; border-bottom: 1px solid #e2e8f0; }
+    main { display: grid; grid-template-columns: 220px 1fr; gap: 16px; padding: 16px; }
+    .palette, .canvas, .inspector { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; }
+    .palette button { display: block; width: 100%; margin: 6px 0; padding: 8px; border: 1px dashed #94a3b8; background: #f8fafc; border-radius: 8px; cursor: pointer; }
+    .canvas { min-height: 420px; }
+    .widget { margin: 8px 0; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc; }
+    .warn { margin: 12px 24px; padding: 10px 14px; background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; font-size: 13px; }
+    code { background: #eef2ff; padding: 1px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 style="margin:0;font-size:18px;">配置化界面 PoC 草图（仅示意）</h1>
+    <p style="margin:6px 0 0;font-size:13px;color:#64748b;">正式实现须经中位配置 API；禁止 UI 直连数据库或设备口。详见 docs/配置化界面PoC说明.md</p>
+  </header>
+  <div class="warn">写操作示例：按钮只应发出 <code>cmd=cycle.start</code> 到网关，而不是执行 SQL。</div>
+  <main>
+    <aside class="palette">
+      <strong>组件</strong>
+      <button type="button" data-type="number">数值参数</button>
+      <button type="button" data-type="switch">开关</button>
+      <button type="button" data-type="chart">曲线（只读）</button>
+      <button type="button" data-type="cmd">命令按钮</button>
+    </aside>
+    <section class="canvas" id="canvas">
+      <div class="widget">示例：进样超时 (ms) — 绑定 <code>GET/PUT /api/ui-layouts</code></div>
+      <div class="widget">示例：启动周期 — 绑定命令白名单 <code>cycle.start</code></div>
+    </section>
+  </main>
+  <script>
+    document.querySelectorAll('.palette button').forEach(function (btn) {
+      btn.onclick = function () {
+        var el = document.createElement('div');
+        el.className = 'widget';
+        el.textContent = '新增组件：' + btn.getAttribute('data-type') + '（导出 layout.json 后由中位保存）';
+        document.getElementById('canvas').appendChild(el);
+      };
+    });
+  </script>
+</body>
+</html>

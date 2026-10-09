@@ -1,0 +1,34 @@
+<div class="card-row">
+  <div class="card"><h3>知识库文档</h3><p id="statDocs">-</p></div>
+  <div class="card"><h3>故障案例</h3><p id="statFaults">-</p></div>
+  <div class="card"><h3>AI 问答</h3><p id="statChats">-</p></div>
+  <div class="card"><h3>评审完成</h3><p id="statReviews">-</p></div>
+</div>
+<div id="guestDashTip" class="list-card" style="display:none; margin-top:0; margin-bottom:16px;">
+    <p style="color:var(--text-muted); font-size:14px; line-height:1.7;">
+      当前为<strong>游客模式</strong>：左侧菜单可浏览；资料类页面点击后会提示无权使用。
+      右上角可<strong>切换回已登录的正式账号</strong>，或「添加游客 / 添加账号」同时保留多个登录态。
+    </p>
+</div>
+<div class="btn-row" id="dashboardMaterialBtns">
+  <button class="btn" type="button" onclick="Router.switchPage('chat')">AI 问答</button>
+  <button class="btn" type="button" onclick="Router.switchPage('fault')">故障分析</button>
+  <button class="btn" type="button" onclick="Router.switchPage('review')">需求评审</button>
+  <button class="btn" type="button" onclick="Router.switchPage('report')">报告编写</button>
+  <button class="btn" type="button" onclick="Router.switchPage('knowledge')">上传知识</button>
+</div>
+<div class="btn-row" id="guestChatBtn" style="display:none;">
+  <button class="btn" type="button" onclick="Router.switchPage('chat')">开始 AI 问答</button>
+</div>
+<div class="list-card">
+  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+    <h3 style="margin:0;">最新动态</h3>
+    <div class="batch-toolbar" style="margin:0;">
+      <label class="batch-check-all"><input type="checkbox" id="actSelectAll"> 全选</label>
+      <button type="button" class="btn btn-sm btn-outline" id="btnBatchDelAct" disabled>批量删除</button>
+    </div>
+  </div>
+  <div id="activityList">
+    <div class="list-item loading-hint">加载中…</div>
+  </div>
+</div>

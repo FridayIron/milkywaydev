@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Agent 助手 · 界面演示</title>
-  <link rel="stylesheet" href="./demo.css" />
+  <link rel="stylesheet" href="css/common.css?v=blog-demo-v1">
 </head>
 <body>
-  <div class="layout">
-    <header class="header">
+  <div id="appMain" class="layout">
+    <div class="header">
       <div class="header-left">
-        <span class="header-logo">MilkyWay · Agent</span>
+        <span class="header-logo">MilkyWay·Agent</span>
         <span class="header-badge">界面演示 · 功能待接入</span>
         <div class="header-nav-btns">
           <a class="header-nav-btn" href="/" target="_parent">功能入口</a>
@@ -18,177 +18,469 @@
         </div>
       </div>
       <div class="header-right">
-        <span class="avatar">示</span>
-        <span>演示账号</span>
-        <span class="role-tag">preview</span>
+        <div class="notify-wrap" id="notifyWrap">
+          <a class="notify-btn" id="btnNotify" href="javascript:void(0)" title="站内消息（演示）">
+            消息
+            <span class="notify-badge" id="notifyBadge" style="display:none;">0</span>
+          </a>
+        </div>
+        <div class="account-switch" id="accountSwitch">
+          <button type="button" class="account-switch-btn" id="btnAccountSwitch">
+            <span class="avatar" id="userAvatar">A</span>
+            <span id="userNameDisplay">-</span>
+            <span class="role-tag" id="userRoleDisplay">-</span>
+            <span class="account-caret">▾</span>
+          </button>
+          <div class="account-dropdown" id="accountDropdown" style="display:none;">
+            <div class="account-dropdown-title">已登录账号</div>
+            <div id="accountList"></div>
+            <div class="account-dropdown-actions">
+              <button type="button" class="account-action" id="btnAccountSettings">账号设置</button>
+              <button type="button" class="account-action" id="btnAddAccount">添加账号</button>
+              <button type="button" class="account-action" id="btnAddGuest">添加游客</button>
+            </div>
+          </div>
+        </div>
+        <span class="logout-btn" id="btnLogout">退出当前</span>
       </div>
-    </header>
+    </div>
 
     <div class="container">
-      <aside class="sidebar">
-        <ul class="sidebar-menu" id="menu">
+      <div class="sidebar">
+        <ul class="sidebar-menu">
           <li class="active" data-page="dashboard">工作台</li>
           <li data-page="chat">AI 智能问答</li>
-          <li data-page="fault">故障 AI 分析</li>
-          <li data-page="review">需求 AI 评审</li>
-          <li data-page="report">报告编写</li>
-          <li data-page="knowledge">知识库管理</li>
-          <li data-page="users">账户与权限</li>
+          <li id="menuFault" data-page="fault">故障 AI 分析</li>
+          <li id="menuReview" data-page="review">需求 AI 评审</li>
+          <li id="menuReport" data-page="report">报告编写</li>
+          <li id="menuKnowledge" data-page="knowledge">知识库管理</li>
+          <li id="menuPermission" data-page="users">账户与权限</li>
+          <li id="menuDevMap" data-page="dev-map" style="display:none;">功能总览</li>
+          <li id="menuDev" data-page="dev" style="display:none;">开发者后台</li>
         </ul>
         <div class="sidebar-footer">
-          <span>本地演示壳</span>
-          <span>未连接后端 API</span>
-          <span style="opacity:.6">demo-v2</span>
+          <span>博客内嵌演示</span>
+          <span id="sidebarUser">-</span>
+          <span style="font-size:11px; opacity:0.6;" id="sidebarVersion">demo</span>
         </div>
-      </aside>
-
-      <main class="main" id="main">
-        <section class="panel active" id="panel-dashboard">
-          <div class="card-row">
-            <div class="card"><h3>知识库文档</h3><p>128</p></div>
-            <div class="card"><h3>故障案例</h3><p>36</p></div>
-            <div class="card"><h3>AI 问答</h3><p>214</p></div>
-            <div class="card"><h3>评审完成</h3><p>19</p></div>
-          </div>
-          <div class="btn-row">
-            <button class="btn" type="button" data-jump="chat">AI 问答</button>
-            <button class="btn" type="button" data-jump="fault">故障分析</button>
-            <button class="btn" type="button" data-jump="review">需求评审</button>
-            <button class="btn" type="button" data-jump="report">报告编写</button>
-            <button class="btn outline" type="button" data-jump="knowledge">上传知识</button>
-          </div>
-          <div class="list-card">
-            <h3>最新动态 <span class="tag">示例数据</span></h3>
-            <div class="list-item"><span>问答：STM32 中断优先级如何配置？</span><span class="muted">今天 10:21</span></div>
-            <div class="list-item"><span>故障分析：液位检测偶发超时</span><span class="muted">昨天 16:08</span></div>
-            <div class="list-item"><span>评审：样本臂时序需求草案</span><span class="muted">前天 09:40</span></div>
-          </div>
-          <p class="muted">此处为工作台示意。正式环境将对接 Agent 平台统计与动态接口。</p>
-        </section>
-
-        <section class="panel panel-fill" id="panel-chat">
-          <div class="chat-shell">
-            <div class="chat-log">
-              <div class="bubble ai">你好，我是 Agent 助手演示。当前为界面预览，消息不会真正请求模型。</div>
-              <div class="bubble me">帮我概括一下 CAN 通信排查思路？</div>
-              <div class="bubble ai">演示回复：可先确认波特率 / 终端电阻 / 帧 ID 过滤，再抓取错误帧与总线负载……（示意文案）</div>
-            </div>
-            <div class="chat-input">
-              <input id="chatInput" type="text" placeholder="输入问题（演示仅本地回显）" />
-              <button class="btn" type="button" id="btnChatSend">发送</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-fault">
-          <div class="form-card">
-            <h3 style="margin-bottom:12px;">故障 AI 分析 <span class="tag">演示</span></h3>
-            <div class="form-item">
-              <label>故障现象</label>
-              <textarea rows="4" placeholder="例如：上电后泵电机间歇异响，报 E102…"></textarea>
-            </div>
-            <div class="form-item">
-              <label>模块 / 分类</label>
-              <select><option>运动控制</option><option>液路</option><option>光学</option><option>通信</option></select>
-            </div>
-            <button class="btn" type="button" disabled>开始分析（待接入）</button>
-            <p class="muted" style="margin-top:12px;">正式版将调用故障 Agent + 知识库检索。</p>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-review">
-          <div class="form-card">
-            <h3 style="margin-bottom:12px;">需求 AI 评审 <span class="tag">演示</span></h3>
-            <div class="form-item">
-              <label>需求文本</label>
-              <textarea rows="6" placeholder="粘贴需求说明…"></textarea>
-            </div>
-            <button class="btn" type="button" disabled>提交评审（待接入）</button>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-report">
-          <div class="form-card">
-            <h3 style="margin-bottom:12px;">报告编写 <span class="tag">演示</span></h3>
-            <div class="form-item">
-              <label>报告类型</label>
-              <select><option>测试报告</option><option>问题分析报告</option><option>月度技术总结</option></select>
-            </div>
-            <div class="form-item">
-              <label>要点 / 素材</label>
-              <textarea rows="5" placeholder="关键信息、数据、结论草稿…"></textarea>
-            </div>
-            <button class="btn" type="button" disabled>生成草稿（待接入）</button>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-knowledge">
-          <div class="list-card">
-            <h3>知识库管理 <span class="tag">示例</span></h3>
-            <p class="muted" style="margin-bottom:12px;">以下为示意文档列表，上传与检索后续接入。</p>
-            <div class="kb-grid">
-              <div class="kb-item"><h4>CAN 通信排障手册</h4><p class="muted">分类 · 通信 · 12 切片</p></div>
-              <div class="kb-item"><h4>液位检测标定流程</h4><p class="muted">分类 · 液路 · 8 切片</p></div>
-              <div class="kb-item"><h4>测试报告模版示例</h4><p class="muted">分类 · 报告 · 5 切片</p></div>
-            </div>
-            <div class="btn-row" style="margin-top:14px; margin-bottom:0;">
-              <button class="btn" type="button" disabled>上传文档（待接入）</button>
-              <button class="btn outline" type="button" disabled>重建索引（待接入）</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel" id="panel-users">
-          <div class="list-card">
-            <h3>账户与权限 <span class="tag">演示</span></h3>
-            <div class="list-item"><span>演示账号 · preview</span><span class="muted">只读示意</span></div>
-            <div class="list-item"><span>角色模型（示意）</span><span class="muted">developer / admin / user / guest</span></div>
-            <p class="muted" style="margin-top:12px;">正式环境将复用 Agent 平台账号体系；本页仅展示界面结构。</p>
-          </div>
-        </section>
-      </main>
+      </div>
+      <div class="main">
+        <div id="pageContainer"></div>
+      </div>
     </div>
   </div>
 
+  <div id="maintenanceOverlay" class="maintenance-overlay" style="display:none;">
+    <div class="maintenance-card">
+      <div class="maintenance-icon">🛠️</div>
+      <h2>服务器维护模式</h2>
+      <p id="maintenanceMsg">服务器维护中，请稍后再试。详细请咨询管理员。</p>
+      <p class="maintenance-sub">开发者正在升级或调整功能，恢复后即可正常使用。</p>
+      <button type="button" class="btn" id="btnMaintLogout">退出登录</button>
+    </div>
+  </div>
+
+  <div id="profileModal" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <h3>账号设置</h3>
+      <p class="modal-hint">可查看当前登录密码，也可修改账号名称与密码。密码至少 6 位，需同时包含字母和数字。</p>
+      <div class="form-item">
+        <label>账号名称</label>
+        <input id="profileUsername" type="text" maxlength="32" placeholder="2～32 个字符">
+      </div>
+      <div class="form-item">
+        <label>我的登录密码</label>
+        <div class="password-wrap profile-pwd-wrap">
+          <input id="profileViewPassword" type="password" readonly placeholder="加载中…" autocomplete="off">
+          <button type="button" class="pwd-toggle" id="btnToggleViewPwd" title="显示/隐藏密码" aria-label="显示密码">
+            <svg id="iconViewEyeOn" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <svg id="iconViewEyeOff" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <p class="modal-hint" id="profilePwdHint" style="margin-top:6px;"></p>
+      </div>
+      <div class="form-item">
+        <label>当前密码（改密码时必填）</label>
+        <input id="profileOldPassword" type="password" autocomplete="current-password" placeholder="不改密码可留空">
+      </div>
+      <div class="form-item">
+        <label>新密码</label>
+        <input id="profileNewPassword" type="password" autocomplete="new-password" placeholder="不修改请留空">
+      </div>
+      <div class="form-item">
+        <label>确认新密码</label>
+        <input id="profileNewPassword2" type="password" autocomplete="new-password" placeholder="再次输入新密码">
+      </div>
+      <div id="profileError" class="login-error" style="display:none; position:static; margin:0 0 12px;"></div>
+      <div style="display:flex; gap:12px;">
+        <button class="btn" type="button" style="flex:1;" id="btnSaveProfile">保存</button>
+        <button class="btn btn-outline" type="button" style="flex:1;" id="btnCloseProfile">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js?v=blog-demo-v1"></script>
+  <script src="js/auth.js?v=blog-demo-v1"></script>
+  <script src="js/api-demo.js?v=blog-demo-v1"></script>
+  <script src="js/user-picker.js?v=blog-demo-v1"></script>
+  <script src="js/router.js?v=blog-demo-v1"></script>
+  <script src="js/pages.js?v=blog-demo-v1"></script>
   <script>
-    (function () {
-      var menu = document.getElementById('menu');
-      function show(name) {
-        document.querySelectorAll('.sidebar-menu li').forEach(function (li) {
-          li.classList.toggle('active', li.getAttribute('data-page') === name);
-        });
-        document.querySelectorAll('.panel').forEach(function (p) {
-          p.classList.toggle('active', p.id === 'panel-' + name);
-        });
-        var main = document.getElementById('main');
-        if (main) main.scrollTop = 0;
+    /* 演示模式：注入本地会话，不跳转登录页 */
+    (function bootstrapDemoAuth() {
+      var u = window.__DEMO_USER__ || {
+        id: 1, username: 'demo', role: 'super', role_label: '超级管理员',
+        permissions: ['all'], kb_download: true, kb_delete: true
+      };
+      try {
+        Auth.setSession('blog-demo-token', u);
+        if (Auth.updateCurrentUser) Auth.updateCurrentUser(u);
+      } catch (e) {}
+      Auth.requireLogin = function () { return true; };
+      /* 演示环境始终允许进入账户与权限 */
+      Auth.canManageUsers = function () { return true; };
+      var _clear = Auth.clearSession;
+      Auth.clearSession = function () {
+        try { _clear && _clear(); } catch (e) {}
+      };
+    })();
+    if (!Auth.requireLogin()) { /* redirected */ }
+
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderAccountDropdown() {
+      var list = document.getElementById('accountList');
+      var ROLE_ORDER = { developer: 0, super: 1, admin: 2, user: 3, guest: 4 };
+      var accounts = Auth.listAccounts().slice().sort(function (a, b) {
+        var ra = ROLE_ORDER[(a.user && a.user.role) || 'user'];
+        var rb = ROLE_ORDER[(b.user && b.user.role) || 'user'];
+        if (ra == null) ra = 9;
+        if (rb == null) rb = 9;
+        if (ra !== rb) return ra - rb;
+        return String((a.user && a.user.username) || '').localeCompare(
+          String((b.user && b.user.username) || ''), 'zh'
+        );
+      });
+      var cur = Auth.getCurrentId();
+      list.innerHTML = accounts.map(function (item) {
+        var u = item.user;
+        var active = String(u.id) === String(cur) ? ' active' : '';
+        return '<button type="button" class="account-item' + active + '" data-uid="' + u.id + '">' +
+          '<span class="account-item-name">' + escapeHtml(u.username) + '</span>' +
+          '<span class="account-item-role">' + escapeHtml(u.role_label || u.role) + '</span>' +
+          (active ? '<span class="account-item-cur">当前</span>' : '') +
+          '</button>';
+      }).join('');
+      list.querySelectorAll('[data-uid]').forEach(function (btn) {
+        btn.onclick = function () {
+          if (Auth.switchAccount(btn.getAttribute('data-uid'))) {
+            document.getElementById('accountDropdown').style.display = 'none';
+            location.reload();
+          }
+        };
+      });
+    }
+
+    function updateShell() {
+      const u = Auth.getUser();
+      if (!u) return;
+      document.getElementById('userAvatar').textContent = u.username.charAt(0).toUpperCase();
+      document.getElementById('userNameDisplay').textContent = u.username;
+      document.getElementById('userRoleDisplay').textContent = u.role_label;
+      document.getElementById('sidebarUser').textContent =
+        Auth.isGuest()
+          ? '访客 · 可看菜单，资料页需正式账号'
+          : (u.role_label + ' · ' + ((u.permissions || []).includes('all') ? '全权限' : ((u.permissions || []).length + '项权限')));
+      document.getElementById('sidebarVersion').textContent = APP_CONFIG.APP_VERSION;
+
+      ['menuFault', 'menuReview', 'menuReport', 'menuKnowledge'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = '';
+        el.classList.remove('disabled');
+      });
+
+      const menu = document.getElementById('menuPermission');
+      if (Auth.canManageUsers()) {
+        menu.classList.remove('disabled');
+        menu.style.display = '';
+      } else if (Auth.isGuest()) {
+        menu.classList.remove('disabled');
+        menu.style.display = '';
+      } else {
+        menu.classList.add('disabled');
+        menu.style.display = '';
       }
-      menu.addEventListener('click', function (e) {
-        var li = e.target.closest('li[data-page]');
-        if (!li) return;
-        show(li.getAttribute('data-page'));
+
+      const menuDev = document.getElementById('menuDev');
+      const menuDevMap = document.getElementById('menuDevMap');
+      if (Auth.isDeveloper()) {
+        menuDev.style.display = '';
+        menuDev.classList.remove('disabled');
+        if (menuDevMap) {
+          menuDevMap.style.display = '';
+          menuDevMap.classList.remove('disabled');
+        }
+      } else if (Auth.isGuest()) {
+        menuDev.style.display = 'none';
+        if (menuDevMap) menuDevMap.style.display = 'none';
+      } else {
+        menuDev.style.display = 'none';
+        menuDev.classList.add('disabled');
+        if (menuDevMap) {
+          menuDevMap.style.display = 'none';
+          menuDevMap.classList.add('disabled');
+        }
+      }
+
+      renderAccountDropdown();
+    }
+
+    document.getElementById('btnAccountSwitch').onclick = function (e) {
+      e.stopPropagation();
+      var dd = document.getElementById('accountDropdown');
+      dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    };
+    document.addEventListener('click', function () {
+      document.getElementById('accountDropdown').style.display = 'none';
+    });
+    document.getElementById('accountDropdown').onclick = function (e) {
+      e.stopPropagation();
+    };
+
+    document.getElementById('btnAddAccount').onclick = function () {
+      window.location.href = 'index.html?add=1';
+    };
+
+    function openProfileModal() {
+      var u = Auth.getUser();
+      if (!u) return;
+      if (Auth.isGuest()) {
+        alert('游客账号不可修改资料，请使用正式账号登录');
+        return;
+      }
+      document.getElementById('profileUsername').value = u.username || '';
+      document.getElementById('profileOldPassword').value = '';
+      document.getElementById('profileNewPassword').value = '';
+      document.getElementById('profileNewPassword2').value = '';
+      var viewPwd = document.getElementById('profileViewPassword');
+      viewPwd.type = 'password';
+      viewPwd.value = '';
+      viewPwd.placeholder = '加载中…';
+      document.getElementById('iconViewEyeOn').style.display = 'block';
+      document.getElementById('iconViewEyeOff').style.display = 'none';
+      document.getElementById('btnToggleViewPwd').setAttribute('aria-label', '显示密码');
+      var hint = document.getElementById('profilePwdHint');
+      hint.textContent = '';
+      var err = document.getElementById('profileError');
+      err.style.display = 'none';
+      err.textContent = '';
+      document.getElementById('profileModal').style.display = 'flex';
+      document.getElementById('accountDropdown').style.display = 'none';
+      API.myPassword().then(function (res) {
+        if (res && res.available && res.password) {
+          viewPwd.value = res.password;
+          viewPwd.placeholder = '';
+          hint.textContent = '点击右侧眼睛图标可显示/隐藏；仅本人登录态可查看。';
+        } else {
+          viewPwd.value = '';
+          viewPwd.placeholder = '暂无存档';
+          hint.textContent = (res && res.hint) || '请重新登录一次后再查看。';
+        }
+      }).catch(function (e) {
+        viewPwd.placeholder = '加载失败';
+        hint.textContent = e.message || '无法加载密码';
       });
-      document.querySelectorAll('[data-jump]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          show(btn.getAttribute('data-jump'));
-        });
+    }
+
+    document.getElementById('btnAccountSettings').onclick = openProfileModal;
+    document.getElementById('btnToggleViewPwd').onclick = function () {
+      var input = document.getElementById('profileViewPassword');
+      if (!input.value) return;
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      document.getElementById('iconViewEyeOn').style.display = show ? 'none' : 'block';
+      document.getElementById('iconViewEyeOff').style.display = show ? 'block' : 'none';
+      this.setAttribute('aria-label', show ? '隐藏密码' : '显示密码');
+    };
+    document.getElementById('btnCloseProfile').onclick = function () {
+      document.getElementById('profileModal').style.display = 'none';
+    };
+    document.getElementById('profileModal').onclick = function (e) {
+      if (e.target === document.getElementById('profileModal')) {
+        document.getElementById('profileModal').style.display = 'none';
+      }
+    };
+    document.getElementById('btnSaveProfile').onclick = async function () {
+      var err = document.getElementById('profileError');
+      err.style.display = 'none';
+      var username = document.getElementById('profileUsername').value.trim();
+      var oldPwd = document.getElementById('profileOldPassword').value;
+      var newPwd = document.getElementById('profileNewPassword').value;
+      var newPwd2 = document.getElementById('profileNewPassword2').value;
+      var cur = Auth.getUser();
+      var payload = {};
+      if (username && username !== (cur && cur.username)) {
+        payload.username = username;
+      }
+      if (newPwd) {
+        if (newPwd !== newPwd2) {
+          err.textContent = '两次输入的新密码不一致';
+          err.style.display = 'block';
+          return;
+        }
+        payload.old_password = oldPwd;
+        payload.new_password = newPwd;
+      }
+      if (!payload.username && !payload.new_password) {
+        err.textContent = '请至少修改账号名称或密码之一';
+        err.style.display = 'block';
+        return;
+      }
+      var btn = document.getElementById('btnSaveProfile');
+      btn.disabled = true;
+      try {
+        var res = await API.updateProfile(payload);
+        document.getElementById('profileModal').style.display = 'none';
+        if (res && res.relogin_required) {
+          alert(res.hint || '密码已更改，请重新登录');
+          try { Auth.clearSession(); } catch (e2) {}
+          window.location.href = 'index.html';
+          return;
+        }
+        Auth.updateCurrentUser(res.user);
+        updateShell();
+        alert('账号资料已更新');
+      } catch (e) {
+        err.textContent = e.message || '保存失败';
+        err.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+      }
+    };
+
+    document.getElementById('btnAddGuest').onclick = async function () {
+      try {
+        var res = await API.guestLogin();
+        var user = res.user || {};
+        user.is_guest = true;
+        Auth.setSession(res.access_token, user);
+        location.reload();
+      } catch (e) {
+        alert(e.message || '添加游客失败');
+      }
+    };
+
+    document.querySelectorAll('.sidebar-menu li').forEach(function (li) {
+      li.addEventListener('click', function () {
+        if (li.classList.contains('disabled')) return;
+        Router.switchPage(li.getAttribute('data-page'), li);
       });
-      document.getElementById('btnChatSend').addEventListener('click', function () {
-        var input = document.getElementById('chatInput');
-        var text = (input.value || '').trim();
-        if (!text) return;
-        var log = document.querySelector('#panel-chat .chat-log');
-        var me = document.createElement('div');
-        me.className = 'bubble me';
-        me.textContent = text;
-        log.appendChild(me);
-        var ai = document.createElement('div');
-        ai.className = 'bubble ai';
-        ai.textContent = '（演示）已收到：「' + text + '」。后续将接入真实 Agent 接口。';
-        log.appendChild(ai);
-        input.value = '';
-        log.scrollTop = log.scrollHeight;
-      });
+    });
+
+    function goBlogHome() {
+      if (window.parent && window.parent !== window) window.parent.location.href = '/';
+      else window.location.href = '/';
+    }
+
+    document.getElementById('btnLogout').onclick = async function () {
+      try { await API.logout(); } catch (e) { /* 网络失败仍清本地 */ }
+      try { Auth.clearSession(); } catch (e2) {}
+      goBlogHome();
+    };
+
+    document.getElementById('btnMaintLogout').onclick = async function () {
+      try { await API.logout(); } catch (e) {}
+      try { Auth.clearSession(); } catch (e2) {}
+      goBlogHome();
+    };
+
+    async function refreshNotifyBadge() {
+      var badge = document.getElementById('notifyBadge');
+      var wrap = document.getElementById('notifyWrap');
+      if (!badge || !wrap) return;
+      if (Auth.isGuest && Auth.isGuest()) {
+        wrap.style.display = 'none';
+        return;
+      }
+      wrap.style.display = '';
+      try {
+        var r = await API.unreadNotifications();
+        var n = (r && r.unread) || 0;
+        if (n > 0) {
+          badge.style.display = '';
+          badge.textContent = n > 99 ? '99+' : String(n);
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    document.getElementById('btnNotify').addEventListener('click', function (ev) {
+      if (Auth.isGuest && Auth.isGuest()) {
+        ev.preventDefault();
+        alert('游客不可使用站内消息');
+      }
+    });
+
+    async function checkMaintenance() {
+      try {
+        var st = await API.systemStatus();
+        var overlay = document.getElementById('maintenanceOverlay');
+        if (st.maintenance && !Auth.isDeveloper()) {
+          document.getElementById('maintenanceMsg').textContent =
+            st.message || '服务器维护中，请稍后再试。详细请咨询管理员。';
+          overlay.style.display = 'flex';
+          return true;
+        }
+        overlay.style.display = 'none';
+        return false;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    (async function boot() {
+      updateShell();
+      try {
+        var me0 = await API.me();
+        if (me0 && me0.id != null) {
+          Auth.updateCurrentUser(me0);
+          updateShell();
+        }
+      } catch (e) { /* 401 由 api.js 处理 */ }
+      var blocked = await checkMaintenance();
+      if (!blocked) {
+        Router.switchPage('dashboard');
+      }
+      setInterval(async function () {
+        var blockedNow = await checkMaintenance();
+        if (!blockedNow && !document.getElementById('pageContainer').innerHTML.trim()) {
+          Router.switchPage('dashboard');
+        }
+      }, 15000);
+
+      setInterval(async function () {
+        if (!Auth.getToken()) return;
+        try {
+          var me = await API.me();
+          if (me && me.id != null) Auth.updateCurrentUser(me);
+        } catch (e) { /* api.js 已处理 401 */ }
+        refreshNotifyBadge();
+      }, 12000);
+      refreshNotifyBadge();
     })();
   </script>
 </body>

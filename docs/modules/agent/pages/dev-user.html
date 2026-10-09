@@ -1,0 +1,64 @@
+<div id="devUserDenied" style="display:none;">
+  <div class="no-permission">
+    <div class="icon">🔒</div>
+    <h3>账号详情</h3>
+    <p>此页面仅开发者可访问。</p>
+    <button class="btn btn-sm" type="button" id="btnBackDevDenied" style="margin-top:16px;">返回</button>
+  </div>
+</div>
+
+<div id="devUserContent" style="display:none;">
+  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;">
+    <button class="btn btn-outline btn-sm" type="button" id="btnBackDevList">← 返回账号列表</button>
+    <h2 style="margin:0; font-size:20px;" id="devUserPageTitle">账号详情</h2>
+  </div>
+
+  <div class="knowledge-grid" style="align-items:flex-start;">
+    <div class="list-card" style="flex:1; margin-top:0;">
+      <h3>基本信息与权限</h3>
+      <p class="modal-hint" style="margin-top:6px;">密码不可查看；可恢复为默认密码（账号名+123）。开发者可分配任意角色（含开发者）；他人不可越级提升。</p>
+      <input type="hidden" id="duId">
+      <div class="form-item"><label>账号名称</label><input id="duUsername" maxlength="32"></div>
+      <div class="form-item">
+        <label>角色</label>
+        <select id="duRole">
+          <option value="developer">开发者</option>
+          <option value="super">超级管理员</option>
+          <option value="admin">管理员</option>
+          <option value="user">普通用户</option>
+          <option value="guest">访客</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label>技术方向</label>
+        <select id="duTechDir"><option value="">未指定</option></select>
+      </div>
+      <div class="form-item">
+        <label>知识库权限</label>
+        <div class="perm-checkbox" id="duPerms"></div>
+      </div>
+      <div class="form-item">
+        <label>资料操作权限（默认关闭，仅开发者可开）</label>
+        <div class="perm-checkbox" style="display:flex;flex-direction:column;gap:8px;">
+          <label><input type="checkbox" id="duKbDownload"> 允许下载知识库文档</label>
+          <label><input type="checkbox" id="duKbDelete"> 允许删除知识库文档</label>
+        </div>
+        <p class="modal-hint" style="margin-top:6px;">上传不受此项限制。开发者账号始终具备下载与删除。</p>
+      </div>
+      <div class="form-item">
+        <label>状态 / 最近活跃</label>
+        <div id="duMeta" style="font-size:13px;color:var(--text-muted);padding-top:6px;">-</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <button class="btn" type="button" id="btnDuSave">保存更改</button>
+        <button class="btn btn-outline" type="button" id="btnDuResetPwd">恢复默认密码</button>
+        <button class="btn btn-outline" type="button" id="btnDuOpenChats" style="color:var(--primary);">管理对话</button>
+      </div>
+    </div>
+
+    <div class="list-card" style="width:380px; margin-top:0; flex-shrink:0;">
+      <h3>用量概览</h3>
+      <div id="duUsage" class="loading-hint" style="margin-top:8px;">加载中…</div>
+    </div>
+  </div>
+</div>

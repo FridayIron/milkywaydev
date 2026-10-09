@@ -1,0 +1,284 @@
+<div id="devMapDenied" style="display:none;">
+  <div class="no-permission">
+    <div class="icon">🔒</div>
+    <h3>功能总览</h3>
+    <p>此页面仅 <strong>开发者</strong> 账号可访问。</p>
+  </div>
+</div>
+
+<div id="devMapContent" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:8px;">
+    <div>
+      <h2 style="margin:0 0 6px; font-size:22px;">功能总览 · UML</h2>
+      <p style="margin:0; font-size:13px; color:var(--text-muted); line-height:1.6;">
+        仅开发者可见。含系统架构、登录 SSO、Agent 流程、角色权限、数据运维 UML，以及
+        <strong>AI 设计框图</strong>（分层架构 / 拓扑 / 知识灌入等 Visio 风格图）。
+        文字交接见 <code>docs/功能总览与AI交接.md</code>。
+      </p>
+    </div>
+    <button class="btn btn-sm btn-outline" type="button" id="btnGoDevOps">进入开发者后台 →</button>
+  </div>
+
+  <div class="uml-tabs" id="umlTabs">
+    <button type="button" class="uml-tab active" data-uml="arch">系统架构</button>
+    <button type="button" class="uml-tab" data-uml="sso">登录与 SSO</button>
+    <button type="button" class="uml-tab" data-uml="agent">Agent 流程</button>
+    <button type="button" class="uml-tab" data-uml="role">角色权限</button>
+    <button type="button" class="uml-tab" data-uml="data">数据与运维</button>
+    <button type="button" class="uml-tab" data-uml="design">AI 设计框图</button>
+  </div>
+
+  <div class="uml-panel active" id="uml-arch">
+    <div class="list-card uml-card">
+      <h3>系统组件图（Component）</h3>
+      <p class="uml-hint">浏览器静态前端 ↔ FastAPI 后端 ↔ SQLite / 向量 / 上传 / LLM</p>
+      <pre class="mermaid-src">flowchart TB
+  subgraph Client["前端 Client"]
+    Login["index.html 登录/记住密码"]
+    App["app.html 主壳 多账号+SSO心跳"]
+    Pages["pages 问答/故障/评审/知识库"]
+  end
+  subgraph Server["后端 FastAPI"]
+    Auth["auth SSO 锁定"]
+    API["chat fault review knowledge"]
+    DevAPI["dev 备份 维护"]
+    Agents["agents 三类 Agent"]
+    RAG["rag + ingest TF-IDF"]
+  end
+  subgraph Store["本地数据"]
+    DB[("ivd_agent.db")]
+    UP["uploads/"]
+    VEC["vectors/"]
+    BAK["backups/"]
+  end
+  LLM["LLM DeepSeek / Mock"]
+  Login --> App --> Pages
+  Pages --> Auth
+  Pages --> API
+  App --> DevAPI
+  API --> Agents --> RAG
+  Agents --> LLM
+  Auth --> DB
+  API --> DB
+  RAG --> VEC
+  RAG --> UP
+  DevAPI --> BAK
+  DevAPI --> DB</pre>
+      <div class="mermaid-render"></div>
+    </div>
+  </div>
+
+  <div class="uml-panel" id="uml-sso">
+    <div class="list-card uml-card">
+      <h3>登录与单点登录（Sequence）</h3>
+      <p class="uml-hint">设备 B 登录同账号后，设备 A Token 失效，心跳 401 后强制退出。</p>
+      <pre class="mermaid-src">sequenceDiagram
+  participant A as 设备A
+  participant S as 服务器
+  participant B as 设备B
+  A->>S: POST /auth/login
+  S->>S: rotate nonce+version
+  S-->>A: Token sid=N1 sv=1
+  B->>S: POST /auth/login 同账号
+  S->>S: rotate nonce+version
+  S-->>B: Token sid=N2 sv=2
+  A->>S: GET /auth/me 心跳
+  S-->>A: 401 已在其他设备登录
+  A->>A: 清会话回登录页
+  B->>S: 业务 API
+  S-->>B: 200 OK</pre>
+      <div class="mermaid-render"></div>
+    </div>
+    <div class="list-card uml-card">
+      <h3>登录失败锁定（Activity）</h3>
+      <pre class="mermaid-src">flowchart TD
+  Start([输入账号密码]) --> Check{是否开发者}
+  Check -->|是| Auth{密码正确}
+  Check -->|否| Frozen{仍在冻结期}
+  Frozen -->|是| Deny1[403 请稍后重试]
+  Frozen -->|否| Auth
+  Auth -->|是| Clear[清零失败次数] --> Rotate[轮换 SSO] --> OK[进入系统]
+  Auth -->|否| Inc[失败次数加1]
+  Inc --> Limit{达到10次}
+  Limit -->|是| Lock[冻结约30分钟]
+  Limit -->|否| Deny2[401 还可尝试]</pre>
+      <div class="mermaid-render"></div>
+    </div>
+  </div>
+
+  <div class="uml-panel" id="uml-agent">
+    <div class="list-card uml-card">
+      <h3>三类 Agent 调用流程（Activity）</h3>
+      <p class="uml-hint">问答 / 故障 / 评审：鉴权 → RAG → LLM → 落库 → 记用量</p>
+      <pre class="mermaid-src">flowchart LR
+  U[用户提问] --> Auth{已登录且有权限}
+  Auth -->|否| E403[403 或游客提示]
+  Auth -->|是| Sess[绑定本人 session]
+  Sess --> RAG[TF-IDF 检索按角色过滤]
+  RAG --> LLM[LLM 或 Mock]
+  LLM --> Save[写入业务表]
+  Save --> Usage[usage_events]
+  Usage --> UI[返回前端]</pre>
+      <div class="mermaid-render"></div>
+    </div>
+    <div class="list-card uml-card">
+      <h3>知识库入库（Activity）</h3>
+      <pre class="mermaid-src">flowchart TD
+  Up[上传文件] --> Type{类型允许}
+  Type -->|否| Err[400]
+  Type -->|是| Perm{分类权限}
+  Perm -->|否| E403[403]
+  Perm -->|是| Parse[extract_text]
+  Parse --> Chunk[chunk_text]
+  Chunk --> DB[("documents + chunks")]
+  DB --> Rebuild[rag.rebuild]
+  Rebuild --> Done[已入库]
+  View[有权限用户] --> Preview[preview]
+  View --> Download[download]</pre>
+      <div class="mermaid-render"></div>
+    </div>
+  </div>
+
+  <div class="uml-panel" id="uml-role">
+    <div class="list-card uml-card">
+      <h3>角色与用例（Use Case）</h3>
+      <pre class="mermaid-src">flowchart TB
+  subgraph Actors["角色"]
+    Dev((开发者))
+    Super((超级管理员))
+    Admin((管理员))
+    User((普通用户))
+    Guest((游客))
+  end
+  subgraph UC["用例"]
+    Chat[AI问答]
+    Fault[故障分析]
+    Review[需求评审]
+    KB[知识库]
+    Users[账户管理]
+    DevOps[维护备份用量]
+    Dash[工作台]
+  end
+  Dev --> Chat
+  Dev --> Fault
+  Dev --> Review
+  Dev --> KB
+  Dev --> Users
+  Dev --> DevOps
+  Dev --> Dash
+  Super --> Chat
+  Super --> Fault
+  Super --> Review
+  Super --> KB
+  Super --> Users
+  Super --> Dash
+  Admin --> Chat
+  Admin --> Fault
+  Admin --> Review
+  Admin --> KB
+  Admin --> Dash
+  User --> Chat
+  User --> Fault
+  User --> Review
+  User --> Dash
+  User -.-> KB
+  Guest --> Dash
+  Guest --> Chat</pre>
+      <div class="mermaid-render"></div>
+    </div>
+    <div class="fmap-roles" style="margin-top:12px;">
+      <div class="fmap-role-title">列表排序优先级</div>
+      <div class="fmap-role-bar">
+        <span class="perm-badge developer">开发者</span>
+        <span class="fmap-role-sep">›</span>
+        <span class="perm-badge super">超级管理员</span>
+        <span class="fmap-role-sep">›</span>
+        <span class="perm-badge admin">管理员</span>
+        <span class="fmap-role-sep">›</span>
+        <span class="perm-badge user">普通用户</span>
+        <span class="fmap-role-sep">›</span>
+        <span class="perm-badge guest">游客</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="uml-panel" id="uml-data">
+    <div class="list-card uml-card">
+      <h3>数据与运维（Deployment）</h3>
+      <pre class="mermaid-src">flowchart TB
+  subgraph Runtime["运行时"]
+    Bat[启动Agent.bat] --> Uvicorn["uvicorn :8000"]
+    Uvicorn --> Main[main.py]
+  end
+  subgraph Data["backend/data"]
+    DB[("ivd_agent.db")]
+    UP["uploads/"]
+    VEC["vectors/"]
+    BAK["backups/"]
+    ST["system_state.json"]
+  end
+  Main --> DB
+  Main --> UP
+  Main --> VEC
+  Main --> BAK
+  Main --> ST
+  DevDel[开发者删除] --> AutoBak[safe_delete 自动备份]
+  AutoBak --> BAK
+  Maint[维护模式 ON] --> Block[非开发者 API 503]</pre>
+      <div class="mermaid-render"></div>
+    </div>
+    <div class="fmap-grid" style="margin-top:14px;">
+      <div class="fmap-card">
+        <h4>核心表</h4>
+        <ul>
+          <li>users（SSO / 锁定字段）</li>
+          <li>documents / chunks</li>
+          <li>chat_sessions / messages</li>
+          <li>fault_cases / reviews</li>
+          <li>usage_events / activities</li>
+        </ul>
+      </div>
+      <div class="fmap-card">
+        <h4>关键约束</h4>
+        <ul>
+          <li>会话按 user_id 隔离</li>
+          <li>SSO 后登录挤掉旧设备</li>
+          <li>游客禁知识库/故障/评审</li>
+          <li>开发者删前自动备份</li>
+          <li>默认重置密码＝账号名+123</li>
+        </ul>
+      </div>
+      <div class="fmap-card">
+        <h4>文档</h4>
+        <ul>
+          <li><code>docs/功能总览与AI交接.md</code></li>
+          <li><code>ai设计框图.html</code> / 页内「AI 设计框图」</li>
+          <li><code>docs/使用说明.md</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="uml-panel" id="uml-design">
+    <div class="list-card uml-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 4px;">AI 设计框图（架构 · 流程 · 拓扑）</h3>
+          <p class="uml-hint" style="margin:0;">
+            来源：<code>ai设计框图.html</code>。含分层架构、Agent 协作、部署拓扑、知识灌入与阶段计划等 Visio 风格图。
+          </p>
+        </div>
+        <a class="btn btn-sm btn-outline" href="pages/ai-design-board.html" target="_blank" rel="noopener">新窗口打开</a>
+      </div>
+      <div class="ai-design-frame-wrap">
+        <iframe
+          id="aiDesignBoardFrame"
+          class="ai-design-frame"
+          title="AI 设计框图"
+          src="pages/ai-design-board.html"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+</div>

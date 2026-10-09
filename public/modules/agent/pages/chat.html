@@ -1,0 +1,49 @@
+<div class="chat-layout">
+  <div class="chat-left">
+    <button class="btn" type="button" style="width:100%; margin-bottom:16px;" id="btnNewChat">新建对话</button>
+    <div class="form-item" style="margin-bottom:12px;">
+      <label>Agent 角色</label>
+      <select id="chatRole">
+        <option value="auto">自动智能匹配</option>
+        <option value="software">软件架构 Agent</option>
+        <option value="fault">故障诊断 Agent</option>
+        <option value="hardware">硬件电路 Agent</option>
+        <option value="mech">机械光学 Agent</option>
+        <option value="clinical">售后测试 Agent</option>
+      </select>
+    </div>
+    <div class="session-side-tools">
+      <div class="batch-toolbar">
+        <label class="batch-check-all"><input type="checkbox" id="chatSelectAll"> 全选</label>
+        <button type="button" class="btn btn-sm btn-outline" id="btnBatchDelChat" disabled>批量删除</button>
+      </div>
+      <p class="session-side-title">历史对话</p>
+    </div>
+    <div class="session-side-scroll" id="chatSessionList"></div>
+  </div>
+  <div class="chat-right">
+    <div style="margin-bottom:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <span class="tag tag-software" id="chatRoleTag">当前：自动匹配</span>
+      <span style="font-size:12px; color:var(--text-muted);" id="chatHint">同一会话：最近约 4 轮原文 + 更早内容滚动摘要；回答生成中可点「修改问题」；相关问题会检索知识库；新建对话不继承上文</span>
+    </div>
+    <div class="chat-content" id="chatContent">
+      <p class="loading-hint">请输入问题。与仪器知识相关时会检索知识库并溯源；普通闲聊不会强行套技术模板。</p>
+    </div>
+    <div class="chat-live-status" id="chatLiveStatus" style="display:none;" aria-live="polite">
+      <span class="chat-waiting-dots" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span id="chatLiveStatusText">准备中…</span>
+    </div>
+    <div class="chat-compose">
+      <div class="chat-attach-bar">
+        <button class="btn btn-outline btn-sm" type="button" id="btnChatPickImage" title="上传图片识图">图片</button>
+        <input type="file" id="chatImageInput" accept="image/jpeg,image/png,image/webp,image/gif" multiple style="display:none">
+        <span class="meta" id="chatImageHint">可选附图（最多3张；可粘贴）</span>
+      </div>
+      <div id="chatImagePreview" class="chat-image-preview" style="display:none;"></div>
+      <div class="chat-input">
+        <textarea id="chatInput" placeholder="输入你的问题…（可附截图/报错图）" rows="2"></textarea>
+        <button class="btn" type="button" style="height:48px; align-self:flex-end;" id="btnSendChat">发送</button>
+      </div>
+    </div>
+  </div>
+</div>

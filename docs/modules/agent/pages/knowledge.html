@@ -1,0 +1,92 @@
+<div class="knowledge-page" id="knowledgePage">
+  <div class="kb-section-tabs" id="knowledgeCatalog" role="tablist" aria-label="知识库分类"></div>
+
+  <div class="kb-toolbar">
+    <div class="kb-toolbar-left">
+      <div id="kbBreadcrumb" class="kb-breadcrumb" aria-live="polite"></div>
+      <div id="kbUploadTarget" class="kb-upload-target" aria-live="polite"></div>
+    </div>
+    <div class="kb-toolbar-right">
+      <label class="kb-inline-field" title="调节知识库界面显示比例">
+        <span>显示</span>
+        <select id="kbUiScale">
+          <option value="1">标准</option>
+          <option value="1.12" selected>较大</option>
+          <option value="1.25">大</option>
+          <option value="1.4">更大</option>
+        </select>
+      </label>
+      <label class="kb-inline-field">
+        <span>上传到</span>
+        <select id="uploadCategory"></select>
+      </label>
+      <button class="btn btn-sm" type="button" id="btnUploadOne">上传</button>
+      <button class="btn btn-sm btn-outline" type="button" id="btnUploadBatch">批量</button>
+      <button class="btn btn-sm btn-outline" type="button" id="btnNewFolder">新建文件夹</button>
+      <input type="file" id="fileInput" style="display:none"
+        accept=".pdf,.md,.txt,.docx,.csv,.log,.xlsx,.json,.ini,.lua">
+      <input type="file" id="fileInputBatch" style="display:none"
+        accept=".pdf,.md,.txt,.docx,.csv,.log,.xlsx,.json,.ini,.lua" multiple>
+    </div>
+  </div>
+
+  <div id="uploadProgressWrap" class="upload-progress-wrap" style="display:none;">
+    <div class="upload-progress-meta">
+      <span id="uploadProgressLabel">准备上传…</span>
+      <span id="uploadProgressPct">0%</span>
+    </div>
+    <div class="upload-progress-bar">
+      <div id="uploadProgressFill" class="upload-progress-fill"></div>
+    </div>
+  </div>
+
+  <div class="kb-drop-hint" id="kbDropHint">可将文件拖到文件夹上：本地文件=上传；已有文档=移动</div>
+
+  <div class="kb-panel" id="kbPanel">
+    <div class="kb-protocol-sync" id="kbProtocolSync" style="display:none;" hidden>
+      <div class="kb-protocol-sync-head">
+        <div class="kb-protocol-sync-title">协议接口库</div>
+        <p class="kb-protocol-sync-desc">从本机协议平台拉取四层命令；每个单元/类型族写入独立文件夹（如「协议-模块库-样本针单元」）。</p>
+      </div>
+      <div class="kb-protocol-sync-layers" id="protocolSyncLayers" role="group" aria-label="同步层级">
+        <label class="kb-protocol-layer"><input type="checkbox" value="base" checked> 子命令库</label>
+        <label class="kb-protocol-layer"><input type="checkbox" value="component" checked> 组件组合</label>
+        <label class="kb-protocol-layer"><input type="checkbox" value="modules" checked> 模块库</label>
+        <label class="kb-protocol-layer"><input type="checkbox" value="debug_combo" checked> 调试命令组合</label>
+      </div>
+      <div class="kb-protocol-sync-row">
+        <label class="kb-inline-field">
+          <span>项目</span>
+          <select id="protocolSyncProject"></select>
+        </label>
+        <div class="kb-protocol-sync-actions">
+          <button type="button" class="btn btn-sm btn-outline" id="btnProtocolCheck">检查更新</button>
+          <button type="button" class="btn btn-sm" id="btnProtocolSync">立即同步</button>
+        </div>
+      </div>
+      <div id="kbProtocolSyncHint" class="kb-protocol-sync-hint">进入软件分类后可同步</div>
+    </div>
+    <div class="batch-toolbar" id="docBatchToolbar" style="display:none;">
+      <label class="batch-check-all"><input type="checkbox" id="docSelectAll"> 全选</label>
+      <button type="button" class="btn btn-sm btn-outline" id="btnBatchDelDocs" disabled>批量删除</button>
+      <button type="button" class="btn btn-sm btn-outline" id="btnMoveToRoot" disabled title="将选中文件移到当前分类根目录">移到根目录</button>
+    </div>
+    <div id="docList"><div class="loading-hint">加载中…</div></div>
+  </div>
+</div>
+
+<div id="docPreviewModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card" style="width:720px; max-height:88vh; display:flex; flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <div>
+        <h3 id="docPreviewTitle" style="margin:0;">文档预览</h3>
+        <p id="docPreviewMeta" class="modal-hint" style="margin-top:6px;"></p>
+      </div>
+      <button type="button" class="btn btn-outline btn-sm" id="btnCloseDocPreview">关闭</button>
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+      <button type="button" class="btn btn-sm" id="btnDownloadDoc">下载原文件</button>
+    </div>
+    <pre id="docPreviewBody" class="doc-preview-body"></pre>
+  </div>
+</div>

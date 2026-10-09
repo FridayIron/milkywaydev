@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVD仪器全域AI知识库Agent平台 · 架构与流程图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 16px 12px;
+            color: #1a2332;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px 44px 36px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ---- 封面 ---- */
+        .cover {
+            text-align: center;
+            padding: 30px 0 35px;
+            border-bottom: 4px solid #1a365d;
+            margin-bottom: 40px;
+        }
+        .cover .main-title {
+            font-size: 34px;
+            font-weight: 700;
+            color: #0b1a2e;
+            letter-spacing: 2px;
+        }
+        .cover .main-title .hl {
+            color: #1a365d;
+        }
+        .cover .sub-title {
+            font-size: 16px;
+            color: #475569;
+            margin-top: 8px;
+        }
+        .cover .meta {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 12px;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0b1a2e;
+            margin: 34px 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #1a365d;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a365d;
+            margin: 24px 0 12px;
+        }
+        .section {
+            margin-bottom: 32px;
+        }
+        .note {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        /* ============================================================ */
+        /*  Visio 风格架构图  */
+        /* ============================================================ */
+        .visio-container {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 28px 30px;
+            margin: 16px 0 24px;
+            border: 1px solid #dce1e8;
+            overflow-x: auto;
+        }
+
+        /* 架构分层 */
+        .arch-layer {
+            display: flex;
+            align-items: stretch;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            min-height: 80px;
+        }
+        .arch-layer:last-child {
+            margin-bottom: 0;
+        }
+        .arch-layer .layer-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 130px;
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            border-radius: 10px 0 0 10px;
+            flex-shrink: 0;
+            text-align: center;
+            line-height: 1.3;
+        }
+        .arch-layer .layer-label.lb-dark {
+            background: #0b1a2e;
+        }
+        .arch-layer .layer-label.lb-blue {
+            background: #1a365d;
+        }
+        .arch-layer .layer-label.lb-indigo {
+            background: #2563eb;
+        }
+        .arch-layer .layer-label.lb-purple {
+            background: #7c3aed;
+        }
+        .arch-layer .layer-label.lb-green {
+            background: #16a34a;
+        }
+        .arch-layer .layer-label.lb-orange {
+            background: #ea580c;
+        }
+        .arch-layer .layer-label.lb-gray {
+            background: #64748b;
+        }
+        .arch-layer .layer-label.lb-teal {
+            background: #0d9488;
+        }
+        .arch-layer .layer-label.lb-amber {
+            background: #d97706;
+        }
+
+        .arch-layer .layer-content {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 14px;
+            padding: 12px 20px;
+            background: #ffffff;
+            border: 1px solid #dce1e8;
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+            flex: 1;
+        }
+        .arch-layer .layer-content .box-item {
+            background: #f1f4f9;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+        .arch-layer .layer-content .box-item.highlight {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+        .arch-layer .layer-content .box-item.highlight-purple {
+            background: #ede9fe;
+            border-color: #c4b5fd;
+            color: #5b21b6;
+        }
+        .arch-layer .layer-content .box-item.highlight-green {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #166534;
+        }
+        .arch-layer .layer-content .box-item.highlight-orange {
+            background: #fef3c7;
+            border-color: #fcd34d;
+            color: #92400e;
+        }
+        .arch-layer .layer-content .arrow-symbol {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        /* ============================================================ */
+        /*  UML 时序图风格  */
+        /* ============================================================ */
+        .uml-container {
+            background: #fafcff;
+            border-radius: 14px;
+            padding: 24px 28px;
+            margin: 16px 0 24px;
+            border: 1px solid #dce1e8;
+            overflow-x: auto;
+        }
+        .uml-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #0b1a2e;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .uml-row {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            min-height: 60px;
+            margin-bottom: 2px;
+        }
+        .uml-row .uml-lifeline {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 80px;
+            max-width: 160px;
+            position: relative;
+        }
+        .uml-row .uml-lifeline .uml-head {
+            background: #1a365d;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        .uml-row .uml-lifeline .uml-head.head-purple {
+            background: #7c3aed;
+        }
+        .uml-row .uml-lifeline .uml-head.head-green {
+            background: #16a34a;
+        }
+        .uml-row .uml-lifeline .uml-head.head-orange {
+            background: #ea580c;
+        }
+        .uml-row .uml-lifeline .uml-head.head-gray {
+            background: #64748b;
+        }
+        .uml-row .uml-lifeline .uml-head.head-teal {
+            background: #0d9488;
+        }
+
+        .uml-row .uml-lifeline .uml-body {
+            position: relative;
+            flex: 1;
+            width: 2px;
+            background: #cbd5e1;
+            min-height: 50px;
+            margin: 2px 0;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #1e293b;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-top {
+            top: 4px;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-mid {
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-bottom {
+            bottom: 4px;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-left {
+            left: 10px;
+            transform: translateX(0);
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-right {
+            left: auto;
+            right: 10px;
+            transform: translateX(0);
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-purple {
+            background: #ede9fe;
+            border-color: #c4b5fd;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-green {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-orange {
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-blue {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+        .uml-row .uml-lifeline .uml-body .uml-msg.msg-red {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .uml-arrow-down {
+            display: inline-block;
+            font-size: 16px;
+            color: #94a3b8;
+            margin: 0 4px;
+        }
+        .uml-arrow-right {
+            display: inline-block;
+            font-size: 16px;
+            color: #94a3b8;
+            margin: 0 4px;
+        }
+
+        /* 时序图多行排列 */
+        .uml-lifelines {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            padding: 8px 0;
+            min-height: 160px;
+        }
+        .uml-lifelines .lifeline {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 70px;
+            max-width: 140px;
+        }
+        .uml-lifelines .lifeline .ll-head {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-dark {
+            background: #0b1a2e;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-blue {
+            background: #1a365d;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-purple {
+            background: #7c3aed;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-green {
+            background: #16a34a;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-orange {
+            background: #ea580c;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-teal {
+            background: #0d9488;
+        }
+        .uml-lifelines .lifeline .ll-head.hd-gray {
+            background: #64748b;
+        }
+        .uml-lifelines .lifeline .ll-body {
+            position: relative;
+            width: 2px;
+            background: #cbd5e1;
+            flex: 1;
+            min-height: 80px;
+            margin: 2px 0;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f8fafc;
+            border: 1px solid #dce1e8;
+            border-radius: 5px;
+            padding: 3px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            color: #1e293b;
+            white-space: nowrap;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-t1 {
+            top: 4px;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-t2 {
+            top: 36px;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-t3 {
+            top: 68px;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-t4 {
+            top: 100px;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-purple {
+            background: #ede9fe;
+            border-color: #c4b5fd;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-green {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-orange {
+            background: #fef3c7;
+            border-color: #fcd34d;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-blue {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-red {
+            background: #fee2e2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-teal {
+            background: #ccfbf1;
+            border-color: #5eead4;
+            color: #0d9488;
+        }
+        .uml-lifelines .lifeline .ll-body .ll-msg.msg-amber {
+            background: #fef3c7;
+            border-color: #fcd34d;
+            color: #92400e;
+        }
+
+        /* ============================================================ */
+        /*  部署拓扑图  */
+        /* ============================================================ */
+        .deploy-topo {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px 40px;
+            padding: 20px 10px;
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1px solid #dce1e8;
+            margin: 16px 0 24px;
+        }
+        .deploy-topo .topo-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            padding: 12px 18px;
+            background: #fff;
+            border-radius: 12px;
+            border: 2px solid #dce1e8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: border-color 0.2s;
+        }
+        .deploy-topo .topo-node:hover {
+            border-color: #94a3b8;
+        }
+        .deploy-topo .topo-node .tn-icon {
+            font-size: 28px;
+            margin-bottom: 4px;
+        }
+        .deploy-topo .topo-node .tn-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #0b1a2e;
+        }
+        .deploy-topo .topo-node .tn-desc {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+        .deploy-topo .topo-node .tn-tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 40px;
+            margin-top: 4px;
+        }
+        .deploy-topo .topo-node .tn-tag.tag-purple {
+            background: #ede9fe;
+            color: #5b21b6;
+        }
+        .deploy-topo .topo-node .tn-tag.tag-blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        .deploy-topo .topo-node .tn-tag.tag-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .deploy-topo .topo-node .tn-tag.tag-orange {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .deploy-topo .topo-node .tn-tag.tag-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .deploy-topo .topo-node.topo-border-purple {
+            border-color: #c4b5fd;
+        }
+        .deploy-topo .topo-node.topo-border-blue {
+            border-color: #93c5fd;
+        }
+        .deploy-topo .topo-node.topo-border-green {
+            border-color: #86efac;
+        }
+        .deploy-topo .topo-node.topo-border-orange {
+            border-color: #fcd34d;
+        }
+        .deploy-topo .topo-node.topo-border-gray {
+            border-color: #cbd5e1;
+        }
+        .deploy-topo .topo-connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #94a3b8;
+            min-width: 30px;
+        }
+        .deploy-topo .topo-connector .tc-line {
+            width: 2px;
+            height: 20px;
+            background: #94a3b8;
+        }
+        .deploy-topo .topo-connector .tc-arrow {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        /* ============================================================ */
+        /*  流程图卡片  */
+        /* ============================================================ */
+        .flow-visio {
+            background: #fafcff;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin: 16px 0 24px;
+            border: 1px solid #dce1e8;
+            overflow-x: auto;
+        }
+        .flow-visio .fv-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #0b1a2e;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .flow-visio .fv-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 6px 12px;
+            margin: 4px 0;
+        }
+        .flow-visio .fv-box {
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+            min-width: 70px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .flow-visio .fv-box.fv-dark {
+            background: #0b1a2e;
+        }
+        .flow-visio .fv-box.fv-blue {
+            background: #2563eb;
+        }
+        .flow-visio .fv-box.fv-purple {
+            background: #7c3aed;
+        }
+        .flow-visio .fv-box.fv-orange {
+            background: #ea580c;
+        }
+        .flow-visio .fv-box.fv-green {
+            background: #16a34a;
+        }
+        .flow-visio .fv-box.fv-red {
+            background: #dc2626;
+        }
+        .flow-visio .fv-box.fv-gray {
+            background: #64748b;
+        }
+        .flow-visio .fv-box.fv-teal {
+            background: #0d9488;
+        }
+        .flow-visio .fv-box.fv-amber {
+            background: #d97706;
+        }
+        .flow-visio .fv-box.fv-pink {
+            background: #db2777;
+        }
+        .flow-visio .fv-box.fv-cyan {
+            background: #0891b2;
+        }
+        .flow-visio .fv-arrow {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+        .flow-visio .fv-label {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .flow-visio .fv-branch {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 6px 14px;
+            padding: 6px 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px dashed #cbd5e1;
+            margin: 4px 0;
+        }
+        .flow-visio .fv-branch .fv-branch-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .flow-visio .fv-note {
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #eef2f6;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        /* ============================================================ */
+        /*  其他  */
+        /* ============================================================ */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin: 14px 0 22px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 14px 0 22px;
+        }
+        .grid-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px 20px;
+            border: 1px solid #eef2f6;
+        }
+        .grid-card .gc-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #0b1a2e;
+            margin-bottom: 4px;
+        }
+        .grid-card .gc-desc {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.8;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 18px;
+            border-top: 2px solid #eef2f6;
+            text-align: center;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                padding: 24px 20px;
+            }
+            .grid-3 {
+                grid-template-columns: 1fr 1fr;
+            }
+            .arch-layer {
+                flex-direction: column;
+            }
+            .arch-layer .layer-label {
+                border-radius: 10px 10px 0 0;
+                min-width: unset;
+                padding: 8px 12px;
+            }
+            .arch-layer .layer-content {
+                border-left: 1px solid #dce1e8;
+                border-radius: 0 0 10px 10px;
+                padding: 10px 14px;
+            }
+            .deploy-topo {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .deploy-topo .topo-connector .tc-line {
+                height: 10px;
+            }
+            .uml-lifelines {
+                flex-wrap: wrap;
+            }
+            .uml-lifelines .lifeline {
+                min-width: 60px;
+                max-width: 100px;
+            }
+            .uml-lifelines .lifeline .ll-body .ll-msg {
+                font-size: 10px;
+                padding: 2px 8px;
+                max-width: 100px;
+            }
+            .flow-visio .fv-row {
+                flex-wrap: wrap;
+            }
+        }
+        @media (max-width: 720px) {
+            .container {
+                padding: 16px 12px;
+                border-radius: 14px;
+            }
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .cover .main-title {
+                font-size: 22px;
+            }
+            .visio-container {
+                padding: 16px 12px;
+            }
+            .arch-layer .layer-content .box-item {
+                font-size: 12px;
+                padding: 4px 10px;
+                white-space: normal;
+            }
+            .uml-lifelines .lifeline {
+                min-width: 50px;
+                max-width: 80px;
+            }
+            .uml-lifelines .lifeline .ll-head {
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+            .uml-lifelines .lifeline .ll-body .ll-msg {
+                font-size: 9px;
+                padding: 2px 6px;
+                max-width: 70px;
+            }
+            .deploy-topo .topo-node {
+                min-width: 80px;
+                padding: 8px 12px;
+            }
+            .flow-visio {
+                padding: 14px 12px;
+            }
+            .flow-visio .fv-box {
+                font-size: 11px;
+                padding: 5px 10px;
+                min-width: 50px;
+            }
+        }
+        @media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+                padding: 30px 36px;
+            }
+            .visio-container,
+            .uml-container,
+            .flow-visio,
+            .deploy-topo,
+            .grid-3,
+            .grid-2 {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- ===== 封面 ===== -->
+        <div class="cover">
+            <div class="main-title">IVD仪器全域AI知识库 <span class="hl">Agent平台</span></div>
+            <div class="sub-title">系统架构 · 时序图 · 流程图 · 部署拓扑 · 功能全景</div>
+            <div class="meta">版本 V1.0 ｜ 2026年7月 ｜ 全本地私有化部署</div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  一、整体系统架构（四层框架图）  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>一、整体系统架构（四层框架图）</h1>
+            <p class="note">全部内网本地部署，数据不上外网。每层职责清晰，松耦合。</p>
+
+            <div class="visio-container">
+                <!-- 第4层：前端 -->
+                <div class="arch-layer">
+                    <div class="layer-label lb-dark">第4层 · 前端交互层</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight">Web页面 (Vue3)</span>
+                        <span class="box-item">企业微信机器人</span>
+                        <span class="box-item">飞书机器人</span>
+                        <span class="box-item">API接口</span>
+                        <span class="box-item">CLI工具</span>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:16px;color:#94a3b8;padding:2px 0;">▾</div>
+                <!-- 第3层：Agent -->
+                <div class="arch-layer">
+                    <div class="layer-label lb-purple">第3层 · 智能Agent核心层</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight-purple">LangChain RAG引擎</span>
+                        <span class="box-item highlight-purple">6大仪器专属Agent</span>
+                        <span class="box-item highlight-purple">本地大模型 Qwen7B</span>
+                        <span class="box-item">Prompt模板</span>
+                        <span class="box-item">工具调用</span>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:16px;color:#94a3b8;padding:2px 0;">▾</div>
+                <!-- 第2层：后端 -->
+                <div class="arch-layer">
+                    <div class="layer-label lb-indigo">第2层 · 后端服务层</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight">FastAPI</span>
+                        <span class="box-item">文档解析/切片</span>
+                        <span class="box-item">向量化服务</span>
+                        <span class="box-item">日志解析</span>
+                        <span class="box-item">RAG检索</span>
+                        <span class="box-item">对话管理</span>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:16px;color:#94a3b8;padding:2px 0;">▾</div>
+                <!-- 第1层：数据 -->
+                <div class="arch-layer">
+                    <div class="layer-label lb-green">第1层 · 数据存储层</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight-green">MySQL 8.0</span>
+                        <span class="box-item highlight-green">FAISS向量库</span>
+                        <span class="box-item highlight-green">本地文件服务器</span>
+                        <span class="box-item">Redis缓存</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="grid-card" style="border-left:4px solid #0b1a2e;">
+                    <div class="gc-title">前端交互层</div>
+                    <div class="gc-desc">Web页面访问。</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #7c3aed;">
+                    <div class="gc-title">Agent核心层</div>
+                    <div class="gc-desc">LangChain编排6大专属Agent，本地大模型推理，仅基于公司内部资料作答。</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #2563eb;">
+                    <div class="gc-title">后端服务层</div>
+                    <div class="gc-desc">FastAPI提供API，负责文档入库、向量化、日志解析、RAG检索、上下文管理。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  二、6大Agent  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>二、6大仪器专属智能Agent</h1>
+            <p class="note">系统根据用户问题自动切换Agent，每个Agent专精一个技术方向。</p>
+
+            <div class="grid-3">
+                <div class="grid-card" style="border-left:4px solid #7c3aed;background:#faf5ff;">
+                    <div class="gc-title">🔧 软件架构Agent</div>
+                    <div class="gc-desc">三层架构解读、需求评审、开发方案、协议设计、迭代风险分析</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #2563eb;background:#eff6ff;">
+                    <div class="gc-title">🔬 故障诊断Agent</div>
+                    <div class="gc-desc">日志分析、报错定位、层级判定、根因分析、排查步骤、历史故障匹配</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #ea580c;background:#fffbeb;">
+                    <div class="gc-title">⚡ 硬件电路Agent</div>
+                    <div class="gc-desc">MCU、CAN、电源、驱动、采样、硬件接口、硬件故障分析</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #16a34a;background:#f0fdf4;">
+                    <div class="gc-title">🔩 机械液路Agent</div>
+                    <div class="gc-desc">传动、泵阀、吸样、洗针、液面探测、机械卡顿故障分析</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #0d9488;background:#f0fdfa;">
+                    <div class="gc-title">💡 光学检测Agent</div>
+                    <div class="gc-desc">发光值异常、本底、噪声、光路污染、增益异常、PMT参数</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #db2777;background:#fdf2f8;">
+                    <div class="gc-title">🧪 测试/临床/售后Agent</div>
+                    <div class="gc-desc">测试用例生成、回归范围、临床问题、现场排障方案、维修SOP</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  三、故障日志AI分析流程（时序图风格）  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>三、故障日志AI分析流程（时序图）</h1>
+            <p class="note">上传日志 → AI自动定位故障层级 → 输出结构化报告，全链路自动化。</p>
+
+            <div class="uml-container">
+                <div class="uml-title">故障日志AI分析 · 时序图</div>
+
+                <div style="display:flex;justify-content:space-around;align-items:flex-start;gap:8px;padding:10px 0;min-height:220px;flex-wrap:wrap;">
+                    <!-- 用户 -->
+                    <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:70px;max-width:120px;">
+                        <div style="background:#0b1a2e;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;text-align:center;width:100%;">用户</div>
+                        <div style="position:relative;width:2px;background:#cbd5e1;flex:1;min-height:180px;margin:2px 0;">
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:4px;background:#dbeafe;border:1px solid #93c5fd;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#1d4ed8;">上传故障日志</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:4px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#166534;">收到分析报告</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:20px;color:#94a3b8;align-self:center;">→</div>
+
+                    <!-- 后端 -->
+                    <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:70px;max-width:120px;">
+                        <div style="background:#1a365d;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;text-align:center;width:100%;">后端服务</div>
+                        <div style="position:relative;width:2px;background:#cbd5e1;flex:1;min-height:180px;margin:2px 0;">
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:4px;background:#fef3c7;border:1px solid #fcd34d;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#92400e;">日志解析</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:44px;background:#fef3c7;border:1px solid #fcd34d;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#92400e;">错误码匹配</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:44px;background:#fef3c7;border:1px solid #fcd34d;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#92400e;">上下文组装</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:4px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#166534;">返回分析结果</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:20px;color:#94a3b8;align-self:center;">→</div>
+
+                    <!-- 知识库 -->
+                    <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:70px;max-width:120px;">
+                        <div style="background:#16a34a;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;text-align:center;width:100%;">知识库</div>
+                        <div style="position:relative;width:2px;background:#cbd5e1;flex:1;min-height:180px;margin:2px 0;">
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:4px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#166534;">向量检索</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:44px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#166534;">历史案例匹配</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:44px;background:#dcfce7;border:1px solid #86efac;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#166534;">故障库查询</div>
+                        </div>
+                    </div>
+
+                    <div style="font-size:20px;color:#94a3b8;align-self:center;">→</div>
+
+                    <!-- Agent -->
+                    <div style="display:flex;flex-direction:column;align-items:center;flex:1;min-width:70px;max-width:120px;">
+                        <div style="background:#7c3aed;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700;text-align:center;width:100%;">Agent</div>
+                        <div style="position:relative;width:2px;background:#cbd5e1;flex:1;min-height:180px;margin:2px 0;">
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:4px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#5b21b6;">根因推理</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);top:44px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#5b21b6;">故障层级判定</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:44px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#5b21b6;">生成排查步骤</div>
+                            <div style="position:absolute;left:50%;transform:translateX(-50%);bottom:4px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:5px;padding:3px 10px;font-size:11px;font-weight:500;white-space:nowrap;color:#5b21b6;">输出结构化报告</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:8px 0 4px;border-top:1px solid #eef2f6;margin-top:4px;">
+                    <span style="font-size:12px;color:#475569;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#dbeafe;vertical-align:middle;margin-right:4px;"></span> 上传日志</span>
+                    <span style="font-size:12px;color:#475569;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#fef3c7;vertical-align:middle;margin-right:4px;"></span> 解析匹配</span>
+                    <span style="font-size:12px;color:#475569;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#dcfce7;vertical-align:middle;margin-right:4px;"></span> 知识检索</span>
+                    <span style="font-size:12px;color:#475569;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#ede9fe;vertical-align:middle;margin-right:4px;"></span> AI推理</span>
+                    <span style="font-size:12px;color:#475569;"><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:#dcfce7;vertical-align:middle;margin-right:4px;"></span> 输出报告</span>
+                </div>
+            </div>
+
+            <div style="background:#f0f7ff;border-left:5px solid #1a365d;padding:14px 20px;border-radius:8px;margin:12px 0 20px;">
+                <div style="font-weight:700;font-size:14px;color:#0b1a2e;">标准化输出报告</div>
+                <div style="font-size:13px;color:#334155;line-height:1.8;margin-top:4px;">
+                    ✅ 故障层级定位（上位机/中位机/下位机/硬件/机械/光学）<br>
+                    ✅ 根因推理 + 关联模块 + 分步排查步骤 + 历史同类故障匹配 + 修复/规避方案
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  四、新需求AI架构评审流程（流程图风格）  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>四、新需求AI架构评审流程</h1>
+            <p class="note">输入新需求 → AI基于三层架构自动评审 → 输出全套开发与测试方案。</p>
+
+            <div class="flow-visio">
+                <div class="fv-title">新需求AI架构评审 · 流程图</div>
+
+                <div class="fv-row">
+                    <div class="fv-box fv-dark">输入新功能需求</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-blue">需求理解</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-purple">架构影响分析</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-orange">协议变更评估</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-teal">任务拆解</div>
+                </div>
+
+                <div class="fv-row">
+                    <div class="fv-box fv-red">输出评审报告</div>
+                    <span class="fv-arrow">←</span>
+                    <div class="fv-box fv-green">方案生成</div>
+                    <span class="fv-arrow">←</span>
+                    <div class="fv-box fv-amber">风险评估</div>
+                    <span class="fv-arrow">←</span>
+                    <div class="fv-box fv-gray">测试建议</div>
+                    <span class="fv-arrow">←</span>
+                    <div class="fv-box fv-pink">兼容性分析</div>
+                </div>
+
+                <div style="text-align:center;font-size:16px;color:#94a3b8;margin:6px 0;">▾</div>
+
+                <div class="fv-branch">
+                    <span class="fv-branch-label">评审报告包含：</span>
+                    <span class="fv-box fv-cyan" style="font-size:12px;padding:4px 12px;min-width:50px;">架构影响</span>
+                    <span class="fv-box fv-amber" style="font-size:12px;padding:4px 12px;min-width:50px;">开发改造点</span>
+                    <span class="fv-box fv-purple" style="font-size:12px;padding:4px 12px;min-width:50px;">协议修改</span>
+                    <span class="fv-box fv-green" style="font-size:12px;padding:4px 12px;min-width:50px;">任务拆分</span>
+                    <span class="fv-box fv-red" style="font-size:12px;padding:4px 12px;min-width:50px;">风险评估</span>
+                    <span class="fv-box fv-blue" style="font-size:12px;padding:4px 12px;min-width:50px;">测试方案</span>
+                </div>
+                <div class="fv-note">基于现有三层软件架构体系自动评估，杜绝拍脑袋决策</div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  五、部署拓扑图（Visio风格）  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>五、部署拓扑图</h1>
+            <p class="note">全本地私有化部署，数据不出公司内网。</p>
+
+            <div class="deploy-topo">
+                <!-- 接入层 -->
+                <div class="topo-node topo-border-blue">
+                    <div class="tn-icon">🖥️</div>
+                    <div class="tn-title">前端接入层</div>
+                    <div class="tn-desc">浏览器 / 企业微信 / 飞书 / API</div>
+                    <div class="tn-tag tag-blue">全员访问</div>
+                </div>
+
+                <div class="topo-connector">
+                    <div class="tc-arrow">→</div>
+                    <div class="tc-line"></div>
+                    <div style="font-size:10px;color:#94a3b8;">HTTP</div>
+                </div>
+
+                <!-- Web服务 -->
+                <div class="topo-node topo-border-purple">
+                    <div class="tn-icon">⚙️</div>
+                    <div class="tn-title">Web服务层</div>
+                    <div class="tn-desc">FastAPI + LangChain</div>
+                    <div class="tn-tag tag-purple">核心引擎</div>
+                </div>
+
+                <div class="topo-connector">
+                    <div class="tc-arrow">→</div>
+                    <div class="tc-line"></div>
+                    <div style="font-size:10px;color:#94a3b8;">本地调用</div>
+                </div>
+
+                <!-- 推理层 -->
+                <div class="topo-node topo-border-orange">
+                    <div class="tn-icon">🧠</div>
+                    <div class="tn-title">推理计算层</div>
+                    <div class="tn-desc">Qwen2.5-7B 本地大模型</div>
+                    <div class="tn-tag tag-orange">GPU服务器</div>
+                </div>
+
+                <div class="topo-connector">
+                    <div class="tc-arrow">→</div>
+                    <div class="tc-line"></div>
+                    <div style="font-size:10px;color:#94a3b8;">读写</div>
+                </div>
+
+                <!-- 存储层 -->
+                <div class="topo-node topo-border-green">
+                    <div class="tn-icon">📀</div>
+                    <div class="tn-title">数据存储层</div>
+                    <div class="tn-desc">MySQL / FAISS / 文件库</div>
+                    <div class="tn-tag tag-green">全本地存储</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="grid-card" style="border-left:4px solid #16a34a;">
+                    <div class="gc-title">硬件要求</div>
+                    <div class="gc-desc">
+                        <strong>最低：</strong>8核CPU / 32GB内存 / 无GPU<br>
+                        <strong>推荐：</strong>16核CPU / 64GB内存 / RTX 3090<br>
+                        <strong>存储：</strong>500GB SSD+
+                    </div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #2563eb;">
+                    <div class="gc-title">软件要求</div>
+                    <div class="gc-desc">
+                        <strong>OS：</strong>Windows / Linux<br>
+                        <strong>核心：</strong>Python3.10 / FastAPI / LangChain / PyTorch<br>
+                        <strong>模型：</strong>Qwen2.5-7B (本地部署)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  六、知识灌入与更新流程  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>六、知识灌入与更新流程</h1>
+
+            <div class="flow-visio">
+                <div class="fv-title">文档上传 → 自动切片 → 向量化 → 入库更新</div>
+                <div class="fv-row">
+                    <div class="fv-box fv-dark">各方向提交文档</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-blue">格式校验</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-purple">自动切片</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-orange">向量化</div>
+                    <span class="fv-arrow">→</span>
+                    <div class="fv-box fv-green">FAISS入库</div>
+                </div>
+                <div class="fv-sub-row" style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 10px;margin:4px 0;">
+                    <span style="font-size:12px;color:#475569;background:#f1f5f9;padding:2px 12px;border-radius:40px;">支持格式：PDF / Word / Markdown / Excel / 日志</span>
+                    <span style="font-size:12px;color:#475569;background:#f1f5f9;padding:2px 12px;border-radius:40px;">全自动处理，无需人工标注</span>
+                </div>
+                <div class="fv-note">更新频率：日常增量更新 + 每月全量重建索引</div>
+            </div>
+
+            <h2 style="font-size:16px;margin-top:16px;">知识来源分类</h2>
+            <div class="grid-3">
+                <div class="grid-card">
+                    <div class="gc-title">📄 研发类</div>
+                    <div class="gc-desc">软件架构文档、通信协议、驱动手册、硬件原理图、机械图纸、光学设计</div>
+                </div>
+                <div class="grid-card">
+                    <div class="gc-title">🔬 测试类</div>
+                    <div class="gc-desc">测试规范、整机测试用例、门禁标准、故障案例、BUG复盘</div>
+                </div>
+                <div class="grid-card">
+                    <div class="gc-title">🛠️ 售后/临床</div>
+                    <div class="gc-desc">临床问题记录、现场故障案例、维修SOP、FAQ、客户反馈</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  七、阶段实施计划  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>七、分阶段实施计划</h1>
+
+            <div class="visio-container">
+                <div class="arch-layer">
+                    <div class="layer-label lb-dark" style="min-width:100px;">阶段一</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight" style="background:#0b1a2e;color:#fff;border-color:#0b1a2e;">基础平台搭建</span>
+                        <span style="font-size:13px;color:#475569;">1周</span>
+                        <span class="box-item">服务器环境部署</span>
+                        <span class="box-item">FastAPI+MySQL+FAISS</span>
+                        <span class="box-item">大模型部署</span>
+                        <span class="box-item">问答功能上线</span>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:16px;color:#94a3b8;padding:2px 0;">▾</div>
+                <div class="arch-layer">
+                    <div class="layer-label lb-purple" style="min-width:100px;">阶段二</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight-purple">专属知识灌入</span>
+                        <span style="font-size:13px;color:#475569;">2周</span>
+                        <span class="box-item">软件/硬件/机械/光学资料</span>
+                        <span class="box-item">历史故障BUG</span>
+                        <span class="box-item">Agent提示词调试</span>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:16px;color:#94a3b8;padding:2px 0;">▾</div>
+                <div class="arch-layer">
+                    <div class="layer-label lb-orange" style="min-width:100px;">阶段三</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight-orange">核心功能开发</span>
+                        <span style="font-size:13px;color:#475569;">2周</span>
+                        <span class="box-item">日志解析规则</span>
+                        <span class="box-item">故障AI分析</span>
+                        <span class="box-item">需求架构评审</span>
+                        <span class="box-item">权限体系</span>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:16px;color:#94a3b8;padding:2px 0;">▾</div>
+                <div class="arch-layer">
+                    <div class="layer-label lb-green" style="min-width:100px;">阶段四</div>
+                    <div class="layer-content">
+                        <span class="box-item highlight-green">试运行+持续迭代</span>
+                        <span style="font-size:13px;color:#475569;">持续</span>
+                        <span class="box-item">全员开放使用</span>
+                        <span class="box-item">持续沉淀新知识</span>
+                        <span class="box-item">精准度优化</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!--  八、落地收益  -->
+        <!-- ============================================================ -->
+        <div class="section">
+            <h1>八、落地收益</h1>
+
+            <div class="grid-3">
+                <div class="grid-card" style="border-left:4px solid #2563eb;">
+                    <div class="gc-title">研发侧</div>
+                    <div class="gc-desc">需求评估标准化、架构改动可控、减少返工、新人快速上手</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #16a34a;">
+                    <div class="gc-title">测试侧</div>
+                    <div class="gc-desc">自动生成测试思路、回归范围、规避漏测</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #ea580c;">
+                    <div class="gc-title">硬件/机械/光学</div>
+                    <div class="gc-desc">知识统一沉淀，问题快速自查，减少跨部门沟通</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #7c3aed;">
+                    <div class="gc-title">售后侧</div>
+                    <div class="gc-desc">现场故障快速AI定位，大幅降低返厂率和上门成本</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #0d9488;">
+                    <div class="gc-title">管理侧</div>
+                    <div class="gc-desc">仪器核心技术资产数字化、可沉淀、可传承</div>
+                </div>
+                <div class="grid-card" style="border-left:4px solid #d97706;">
+                    <div class="gc-title">全员</div>
+                    <div class="gc-desc">跨部门信息差消除，沟通成本降低50%+</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            IVD仪器全域AI知识库Agent平台 · 架构与流程图 · 2026年7月
+        </div>
+
+    </div>
+</body>
+</html>

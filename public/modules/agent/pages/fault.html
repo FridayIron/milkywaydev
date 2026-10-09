@@ -1,0 +1,36 @@
+<div class="fault-layout">
+  <div class="session-side">
+    <button class="btn" type="button" style="width:100%; margin-bottom:12px;" id="btnNewFault">新建分析</button>
+    <p class="session-side-title">历史记录</p>
+    <div class="session-side-scroll" id="faultHistoryList"></div>
+  </div>
+  <div class="fault-left">
+    <h3 style="margin-bottom:16px;">故障录入</h3>
+    <div class="form-item"><label>故障现象</label><input id="faultSymptom" placeholder="简要描述故障现象"></div>
+    <div class="form-item"><label>仪器版本</label><input id="faultVersion" placeholder="V3.2.1"></div>
+    <div class="form-item"><label>故障场景</label><input id="faultScene" placeholder="量产 / 测试 / 临床"></div>
+    <div class="form-item"><label>日志 / 文本</label><textarea id="faultLog" rows="5" placeholder="粘贴日志或故障描述"></textarea></div>
+    <button class="btn" type="button" style="width:100%;" id="btnAnalyzeFault">开始 AI 故障分析</button>
+    <p class="loading-hint" style="margin-top:10px;">分析完成后会自动保存到左侧历史，切页再回来可继续查看。</p>
+  </div>
+  <div class="fault-right">
+    <h3>故障分析报告</h3>
+    <div id="faultTags" style="margin:12px 0;"></div>
+    <div id="faultReport" class="agent-result-scroll">
+      <p class="loading-hint">填写左侧信息后开始分析，报告将按：概括 / 根因 / 排查 / 修复 / 测试 输出。</p>
+    </div>
+    <div class="agent-right-footer">
+      <div class="list-card report-revise-card" style="display:none;" id="faultReviseBox">
+        <h3 style="margin-top:0;">追问 / 继续修改</h3>
+        <div class="form-item" style="margin-bottom:10px;">
+          <label>追问或修改意见</label>
+          <textarea id="faultReviseHint" rows="2" placeholder="例如：根因再结合液路压力日志细一点；补充一线排查顺序…"></textarea>
+        </div>
+        <button class="btn" type="button" id="btnReviseFault">按意见再分析</button>
+      </div>
+      <div class="btn-row" style="display:none;" id="faultActions">
+        <button class="btn btn-outline" type="button" id="btnExportFault">复制报告</button>
+      </div>
+    </div>
+  </div>
+</div>

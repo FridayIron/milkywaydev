@@ -29,9 +29,9 @@ import{_ as a,o as t,c as n,ak as i}from"./chunks/framework.DKi5cyCJ.js";const k
 <span class="line"><span>│   ├── assets/img/          # 图片</span></span>
 <span class="line"><span>│   │   ├── blog/            # 博客配图</span></span>
 <span class="line"><span>│   │   └── pages/           # 页面插图</span></span>
-<span class="line"><span>│   ├── modules/             # 大模块界面演示（纯静态）</span></span>
-<span class="line"><span>│   │   ├── agent/           # Agent 主壳演示</span></span>
-<span class="line"><span>│   │   └── work/            # 工作计划演示</span></span>
+<span class="line"><span>│   ├── modules/             # 大模块界面演示（复用 Agent 真实前端壳 + Mock API）</span></span>
+<span class="line"><span>│   │   ├── agent/           # app 主壳 / pages / common.css / pages.js</span></span>
+<span class="line"><span>│   │   └── work/            # workbench 壳 / work.css / work.js</span></span>
 <span class="line"><span>│   └── tools/               # 网页小工具（HTML 文件，如 png_to_svg.html）</span></span>
 <span class="line"><span>│</span></span>
 <span class="line"><span>├── scripts/                 # 构建与辅助脚本</span></span>

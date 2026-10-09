@@ -1,0 +1,74 @@
+<div class="report-layout">
+  <div class="session-side">
+    <button class="btn" type="button" style="width:100%; margin-bottom:12px;" id="btnNewReport">新建报告</button>
+    <p class="session-side-title">历史记录</p>
+    <div class="session-side-scroll" id="reportHistoryList"></div>
+  </div>
+  <div class="report-left">
+    <h3 class="report-panel-title">报告编写（AI）</h3>
+    <p class="report-lead">
+      会调用大模型，并检索知识库（含<strong>故障案例库</strong>等）综合生成。模版可选：仅提高章节结构权重；也可不选模版，按你的要求直接生成，再逐步修订优化。
+    </p>
+    <div class="form-item">
+      <label>结构参考模版（可选）</label>
+      <select id="reportTemplateSelect">
+        <option value="">不使用模版（推荐默认）</option>
+      </select>
+      <p id="reportTemplateHint" class="report-hint">默认不使用模版：按编写要求 + 知识库检索综合生成。</p>
+    </div>
+    <div class="form-item">
+      <label>报告标题</label>
+      <input id="reportTitle" placeholder="例如：XX 机型液路可靠性测试报告">
+    </div>
+    <div class="form-item">
+      <label>报告类型</label>
+      <select id="reportType">
+        <option>测试报告</option>
+        <option>验证报告</option>
+        <option>故障分析报告</option>
+        <option>需求评审纪要</option>
+        <option>项目周报/月报</option>
+        <option>临床反馈汇总</option>
+        <option>其他</option>
+      </select>
+    </div>
+    <div class="form-item">
+      <label>阅读对象</label>
+      <input id="reportAudience" placeholder="如：项目组 / 质量 / 管理层（可选）">
+    </div>
+    <div class="form-item">
+      <label>编写要求 / 背景</label>
+      <textarea id="reportRequirements" rows="4" placeholder="说明目的、范围、已知现象/结论、必须覆盖的内容；可引用故障关键词便于检索案例库"></textarea>
+    </div>
+    <div class="form-item report-outline-item">
+      <label>大纲 / 要点 <span class="report-label-sub">（可选；选模版时会提取章节要点供编辑）</span></label>
+      <textarea id="reportOutline" rows="5" placeholder="可不填。需要时可写章节提纲或关键数据要点"></textarea>
+    </div>
+    <button class="btn report-generate-btn" type="button" id="btnGenerateReport">AI 综合生成报告</button>
+    <p class="loading-hint" style="margin-top:10px;">生成/修订后会自动保存到左侧历史，切页可继续查看。</p>
+  </div>
+  <div class="report-right">
+    <h3 class="report-panel-title">生成结果</h3>
+    <div id="reportRetrievalMeta" class="report-hint" style="margin-bottom:6px;"></div>
+    <div id="reportSources" class="report-sources"></div>
+    <div id="reportResult" class="report-result">
+      <p class="loading-hint">填写标题与编写要求后生成。系统将检索故障库等知识并调用 AI；下方可追问反复修订。</p>
+    </div>
+    <div class="report-right-footer">
+      <div class="list-card report-revise-card" style="display:none;" id="reportReviseBox">
+        <h3 style="margin-top:0;">追问 / 继续修改</h3>
+        <div class="form-item" style="margin-bottom:10px;">
+          <label>追问或修改意见</label>
+          <textarea id="reportReviseHint" rows="2" placeholder="例如：补充故障根因；结论更简洁；去掉或简化流程图…"></textarea>
+        </div>
+        <button class="btn" type="button" id="btnReviseReport">按意见再生成</button>
+      </div>
+      <div class="btn-row report-actions" style="display:none;" id="reportActions">
+        <button class="btn btn-outline" type="button" id="btnExportDocx">导出 Word</button>
+        <button class="btn btn-outline" type="button" id="btnExportMd">导出 Markdown</button>
+        <button class="btn btn-outline" type="button" id="btnCopyReport">复制正文</button>
+        <button class="btn btn-outline" type="button" id="btnCopyReportAll">复制全部</button>
+      </div>
+    </div>
+  </div>
+</div>

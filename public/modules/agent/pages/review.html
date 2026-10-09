@@ -1,0 +1,44 @@
+<div class="review-layout">
+  <div class="session-side">
+    <button class="btn" type="button" style="width:100%; margin-bottom:12px;" id="btnNewReview">新建评审</button>
+    <p class="session-side-title">历史记录</p>
+    <div class="session-side-scroll" id="reviewHistoryList"></div>
+  </div>
+  <div class="review-main">
+    <div class="list-card" style="margin-bottom:20px;">
+      <h3>新需求录入</h3>
+      <div class="form-item"><label>需求名称</label><input id="reviewName" placeholder="请输入需求名称"></div>
+      <div class="form-item">
+        <label>需求类型</label>
+        <select id="reviewType">
+          <option>新增功能</option>
+          <option>功能迭代</option>
+          <option>BUG修复</option>
+          <option>架构调整</option>
+        </select>
+      </div>
+      <div class="form-item"><label>需求描述</label><textarea id="reviewDesc" rows="4" placeholder="粘贴 PRD 或功能描述"></textarea></div>
+      <button class="btn" type="button" id="btnStartReview">开始 AI 架构评审</button>
+      <p class="loading-hint" style="margin-top:10px;">评审完成后会自动保存到左侧历史，切页再回来可继续查看。</p>
+    </div>
+    <div class="list-card agent-result-card">
+      <h3>评审结果 · 结构化方案</h3>
+      <div id="reviewResult" class="agent-result-scroll">
+        <p class="loading-hint">提交需求后，将输出架构影响 / 改造点 / 协议 / 风险 / 测试方案。</p>
+      </div>
+      <div class="agent-right-footer">
+        <div class="list-card report-revise-card" style="display:none;" id="reviewReviseBox">
+          <h3 style="margin-top:0;">追问 / 继续修改</h3>
+          <div class="form-item" style="margin-bottom:10px;">
+            <label>追问或修改意见</label>
+            <textarea id="reviewReviseHint" rows="2" placeholder="例如：协议变更写清帧格式；测试方案按冒烟/回归分层…"></textarea>
+          </div>
+          <button class="btn" type="button" id="btnReviseReview">按意见再评审</button>
+        </div>
+        <div class="btn-row" style="display:none;" id="reviewActions">
+          <button class="btn btn-outline" type="button" id="btnExportReview">复制方案</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
