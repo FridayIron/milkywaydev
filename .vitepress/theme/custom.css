@@ -55,10 +55,25 @@ html.vp-suppress-anchor .vp-doc .header-anchor {
   background: transparent !important;
 }
 
-.layout-home .VPNav {
-  background: rgba(15, 12, 40, 0.72) !important;
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+/* 顶栏单独加深：保证站点名可读（勿再被后面的 transparent 覆盖） */
+.layout-home .VPNav,
+html.vp-home-cosmic .VPNav {
+  background: rgba(10, 12, 28, 0.94) !important;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.layout-home .VPNavBar,
+.layout-home .VPNavBar .wrapper,
+.layout-home .VPNavBar .container {
+  background: transparent !important;
+}
+
+.layout-home .VPNavBarTitle .title,
+.layout-home .VPNavBarTitle span,
+.layout-home .VPNavBar .title {
+  color: #ffffff !important;
+  opacity: 1 !important;
 }
 
 .layout-home .VPNavBar .link {
@@ -108,11 +123,17 @@ html.vp-home-cosmic .VPMenu a:hover {
   display: none !important;
 }
 
-/* 门户页顶栏只保留站点名，模块选择交给卡片 */
+/* 门户页顶栏只保留站点名；隐藏右侧多余控件与竖分割线 */
 .layout-home .VPNavBarMenu,
 .layout-home .VPNavBarExtra,
-.layout-home .VPNavBarHamburger {
+.layout-home .VPNavBarHamburger,
+.layout-home .VPNavBarAppearance,
+.layout-home .VPNavBarSocialLinks,
+.layout-home .VPNavBar .divider,
+.layout-home .VPNavBar .content-body > .divider {
   display: none !important;
+  width: 0 !important;
+  border: none !important;
 }
 
 .layout-home .VPHome,
@@ -129,16 +150,19 @@ html.vp-home-cosmic .VPMenu a:hover {
   background: transparent !important;
 }
 
-/* 首页全局：透出星空 canvas，勿盖实色渐变 */
+/* 首页全局：透出星空 canvas；顶栏保持深色实底 */
 html.vp-home-cosmic,
 html.vp-home-cosmic body {
   background: #0f0f28 !important;
 }
 
-html.vp-home-cosmic .VPNav,
 html.vp-home-cosmic .VPContent,
 html.vp-home-cosmic .VPDoc {
   background: transparent !important;
+}
+
+html.vp-home-cosmic .VPNav {
+  background: rgba(10, 12, 28, 0.94) !important;
 }
 
 html.vp-home-cosmic .VPContent.has-sidebar {
@@ -235,6 +259,87 @@ html {
   max-width: 100%;
   overflow-x: clip;
   box-sizing: border-box;
+}
+
+/* Agent / 工作计划模块演示 iframe（旧 markdown 兜底） */
+.vp-doc .module-demo-frame {
+  display: block;
+  width: 100%;
+  min-height: min(82vh, 900px);
+  height: 82vh;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: #fff;
+  margin: 12px 0 8px;
+}
+
+/* 模块演示页：全屏嵌入，去掉博客顶栏/侧栏/文档留白，避免双重顶栏压比例 */
+html.vp-module-demo,
+html.vp-module-demo body {
+  overflow: hidden !important;
+  height: 100% !important;
+  background: #f1f4f9 !important;
+}
+
+html.vp-module-demo .VPNav,
+html.vp-module-demo .VPSidebar,
+html.vp-module-demo .VPDocAside,
+html.vp-module-demo .aside,
+html.vp-module-demo .VPDocFooter,
+html.vp-module-demo .VPFooter,
+html.vp-module-demo .VPLocalNav,
+html.vp-module-demo .VPNavScreen {
+  display: none !important;
+}
+
+html.vp-module-demo .VPSidebar {
+  width: 0 !important;
+}
+
+html.vp-module-demo {
+  --vp-sidebar-width: 0px;
+  --vp-nav-height: 0px;
+  --vp-layout-max-width: 100%;
+}
+
+html.vp-module-demo .VPContent,
+html.vp-module-demo .VPContent.has-sidebar,
+html.vp-module-demo .VPContent.is-home,
+html.vp-module-demo .VPDoc,
+html.vp-module-demo .VPDoc .container,
+html.vp-module-demo .content,
+html.vp-module-demo .content-container,
+html.vp-module-demo .vp-doc {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+}
+
+html.vp-module-demo .VPContent.has-sidebar {
+  padding-left: 0 !important;
+}
+
+html.vp-module-demo .VPDoc .content-container {
+  max-width: none !important;
+}
+
+html.vp-module-demo .vp-doc > h1,
+html.vp-module-demo .vp-doc > h2,
+html.vp-module-demo .vp-doc > p,
+html.vp-module-demo .vp-doc .tip,
+html.vp-module-demo .vp-doc .custom-block {
+  display: none !important;
+}
+
+/* 兜底：避免全局 iframe 规则把高度压扁 */
+html.vp-module-demo .vp-doc iframe,
+html.vp-module-demo iframe.module-demo-embed__frame {
+  max-width: none !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .vp-doc img,

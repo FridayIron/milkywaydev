@@ -1,21 +1,10 @@
 ---
 title: 工作计划
-description: 工作计划模块框架占位
+description: 工作计划界面演示（布局对齐 Workbench）
+aside: false
+sidebar: false
+outline: false
+pageClass: module-demo-page
 ---
 
-# 工作计划
-
-> 当前为**框架占位页**，尚未接入实际工作台能力。
-
-## 规划能力（待实现）
-
-- 计划排期
-- 每日记录
-- 月度总结 / 甘特视图
-- 与博客、Agent 模块相互独立
-
-## 说明
-
-从门户进入本页仅用于确认路由与模块边界。后续在本目录扩展页面与数据即可。
-
-[← 返回功能入口](/)
+<ModuleDemoEmbed src="/modules/work/index.html" title="工作计划界面演示" />

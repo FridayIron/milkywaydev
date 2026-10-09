@@ -3,6 +3,7 @@ import Layout from './Layout.vue'
 import SkillChart from './components/SkillChart.vue'
 import VisitorTracker from './components/VisitorTracker.vue'
 import VisitorAdmin from './components/VisitorAdmin.vue'
+import ModuleDemoEmbed from './components/ModuleDemoEmbed.vue'
 import { startPriorityPrefetch } from './prefetch-priority.js'
 import './custom.css'
 
@@ -10,6 +11,9 @@ function applyPageTheme(path) {
   if (typeof document === 'undefined') return
   const norm = (path || '/').replace(/\/$/, '') || '/'
   const isHome = norm === '/' || norm === '/index' || norm === '/index.html'
+  const isModuleDemo = norm.startsWith('/pages/modules/')
+  document.documentElement.classList.toggle('vp-module-demo', isModuleDemo)
+  document.body.classList.toggle('vp-module-demo', isModuleDemo)
   if (isHome) {
     document.documentElement.classList.add('vp-home-cosmic')
     document.documentElement.classList.remove('vp-page-light')
@@ -39,6 +43,7 @@ export default {
     app.component('SkillChart', SkillChart)
     app.component('VisitorTracker', VisitorTracker)
     app.component('VisitorAdmin', VisitorAdmin)
+    app.component('ModuleDemoEmbed', ModuleDemoEmbed)
     if (typeof window !== 'undefined') {
       const prevBefore = router.onBeforeRouteChange
       const prevAfter = router.onAfterRouteChange

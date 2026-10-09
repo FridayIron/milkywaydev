@@ -63,22 +63,35 @@ const VPLayout = DefaultTheme.Layout
   background: transparent !important;
 }
 
-.layout-home .VPNav {
-  background: rgba(15, 12, 40, 0.72) !important;
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.layout-home .VPNav,
+html.vp-home-cosmic .VPNav {
+  background: rgba(10, 12, 28, 0.94) !important;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.layout-home .VPNavBarTitle .title,
+.layout-home .VPNavBarTitle span {
+  color: #ffffff !important;
 }
 
 .layout-home .VPNavBar .link,
 .layout-home .VPNavBarMenuLink,
 html.vp-home-cosmic .VPFlyout .button .text,
 html.vp-home-cosmic .VPNavBarMenuGroup .text {
-  color: rgba(255, 255, 255, 0.92) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
 }
 
 .layout-home .VPNavBar .link:hover,
 html.vp-home-cosmic .VPFlyout:hover .text {
   color: #5eead4 !important;
+}
+
+.layout-home .VPNavBarExtra,
+.layout-home .VPNavBarAppearance,
+.layout-home .VPNavBarSocialLinks,
+.layout-home .VPNavBar .divider {
+  display: none !important;
 }
 
 html.vp-home-cosmic .VPMenu {

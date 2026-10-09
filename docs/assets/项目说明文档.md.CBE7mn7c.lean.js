@@ -1,0 +1,1 @@
+import{_ as a,o as t,c as n,ak as i}from"./chunks/framework.DKi5cyCJ.js";const k=JSON.parse('{"title":"项目完整说明文档","description":"","frontmatter":{},"headers":[],"relativePath":"项目说明文档.md","filePath":"项目说明文档.md"}'),e={name:"项目说明文档.md"};function d(l,s,p,o,h,r){return t(),n("div",null,[...s[0]||(s[0]=[i("",80)])])}const g=a(e,[["render",d]]);export{k as __pageData,g as default};

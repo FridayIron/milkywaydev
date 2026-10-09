@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent 助手 · 界面演示</title>
+  <link rel="stylesheet" href="./demo.css" />
+</head>
+<body>
+  <div class="layout">
+    <header class="header">
+      <div class="header-left">
+        <span class="header-logo">MilkyWay · Agent</span>
+        <span class="header-badge">界面演示 · 功能待接入</span>
+        <div class="header-nav-btns">
+          <a class="header-nav-btn" href="/" target="_parent">功能入口</a>
+          <a class="header-nav-btn primary" href="/pages/modules/work" target="_parent">工作计划</a>
+        </div>
+      </div>
+      <div class="header-right">
+        <span class="avatar">示</span>
+        <span>演示账号</span>
+        <span class="role-tag">preview</span>
+      </div>
+    </header>
+
+    <div class="container">
+      <aside class="sidebar">
+        <ul class="sidebar-menu" id="menu">
+          <li class="active" data-page="dashboard">工作台</li>
+          <li data-page="chat">AI 智能问答</li>
+          <li data-page="fault">故障 AI 分析</li>
+          <li data-page="review">需求 AI 评审</li>
+          <li data-page="report">报告编写</li>
+          <li data-page="knowledge">知识库管理</li>
+          <li data-page="users">账户与权限</li>
+        </ul>
+        <div class="sidebar-footer">
+          <span>本地演示壳</span>
+          <span>未连接后端 API</span>
+          <span style="opacity:.6">demo-v2</span>
+        </div>
+      </aside>
+
+      <main class="main" id="main">
+        <section class="panel active" id="panel-dashboard">
+          <div class="card-row">
+            <div class="card"><h3>知识库文档</h3><p>128</p></div>
+            <div class="card"><h3>故障案例</h3><p>36</p></div>
+            <div class="card"><h3>AI 问答</h3><p>214</p></div>
+            <div class="card"><h3>评审完成</h3><p>19</p></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" type="button" data-jump="chat">AI 问答</button>
+            <button class="btn" type="button" data-jump="fault">故障分析</button>
+            <button class="btn" type="button" data-jump="review">需求评审</button>
+            <button class="btn" type="button" data-jump="report">报告编写</button>
+            <button class="btn outline" type="button" data-jump="knowledge">上传知识</button>
+          </div>
+          <div class="list-card">
+            <h3>最新动态 <span class="tag">示例数据</span></h3>
+            <div class="list-item"><span>问答：STM32 中断优先级如何配置？</span><span class="muted">今天 10:21</span></div>
+            <div class="list-item"><span>故障分析：液位检测偶发超时</span><span class="muted">昨天 16:08</span></div>
+            <div class="list-item"><span>评审：样本臂时序需求草案</span><span class="muted">前天 09:40</span></div>
+          </div>
+          <p class="muted">此处为工作台示意。正式环境将对接 Agent 平台统计与动态接口。</p>
+        </section>
+
+        <section class="panel panel-fill" id="panel-chat">
+          <div class="chat-shell">
+            <div class="chat-log">
+              <div class="bubble ai">你好，我是 Agent 助手演示。当前为界面预览，消息不会真正请求模型。</div>
+              <div class="bubble me">帮我概括一下 CAN 通信排查思路？</div>
+              <div class="bubble ai">演示回复：可先确认波特率 / 终端电阻 / 帧 ID 过滤，再抓取错误帧与总线负载……（示意文案）</div>
+            </div>
+            <div class="chat-input">
+              <input id="chatInput" type="text" placeholder="输入问题（演示仅本地回显）" />
+              <button class="btn" type="button" id="btnChatSend">发送</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-fault">
+          <div class="form-card">
+            <h3 style="margin-bottom:12px;">故障 AI 分析 <span class="tag">演示</span></h3>
+            <div class="form-item">
+              <label>故障现象</label>
+              <textarea rows="4" placeholder="例如：上电后泵电机间歇异响，报 E102…"></textarea>
+            </div>
+            <div class="form-item">
+              <label>模块 / 分类</label>
+              <select><option>运动控制</option><option>液路</option><option>光学</option><option>通信</option></select>
+            </div>
+            <button class="btn" type="button" disabled>开始分析（待接入）</button>
+            <p class="muted" style="margin-top:12px;">正式版将调用故障 Agent + 知识库检索。</p>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-review">
+          <div class="form-card">
+            <h3 style="margin-bottom:12px;">需求 AI 评审 <span class="tag">演示</span></h3>
+            <div class="form-item">
+              <label>需求文本</label>
+              <textarea rows="6" placeholder="粘贴需求说明…"></textarea>
+            </div>
+            <button class="btn" type="button" disabled>提交评审（待接入）</button>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-report">
+          <div class="form-card">
+            <h3 style="margin-bottom:12px;">报告编写 <span class="tag">演示</span></h3>
+            <div class="form-item">
+              <label>报告类型</label>
+              <select><option>测试报告</option><option>问题分析报告</option><option>月度技术总结</option></select>
+            </div>
+            <div class="form-item">
+              <label>要点 / 素材</label>
+              <textarea rows="5" placeholder="关键信息、数据、结论草稿…"></textarea>
+            </div>
+            <button class="btn" type="button" disabled>生成草稿（待接入）</button>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-knowledge">
+          <div class="list-card">
+            <h3>知识库管理 <span class="tag">示例</span></h3>
+            <p class="muted" style="margin-bottom:12px;">以下为示意文档列表，上传与检索后续接入。</p>
+            <div class="kb-grid">
+              <div class="kb-item"><h4>CAN 通信排障手册</h4><p class="muted">分类 · 通信 · 12 切片</p></div>
+              <div class="kb-item"><h4>液位检测标定流程</h4><p class="muted">分类 · 液路 · 8 切片</p></div>
+              <div class="kb-item"><h4>测试报告模版示例</h4><p class="muted">分类 · 报告 · 5 切片</p></div>
+            </div>
+            <div class="btn-row" style="margin-top:14px; margin-bottom:0;">
+              <button class="btn" type="button" disabled>上传文档（待接入）</button>
+              <button class="btn outline" type="button" disabled>重建索引（待接入）</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-users">
+          <div class="list-card">
+            <h3>账户与权限 <span class="tag">演示</span></h3>
+            <div class="list-item"><span>演示账号 · preview</span><span class="muted">只读示意</span></div>
+            <div class="list-item"><span>角色模型（示意）</span><span class="muted">developer / admin / user / guest</span></div>
+            <p class="muted" style="margin-top:12px;">正式环境将复用 Agent 平台账号体系；本页仅展示界面结构。</p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var menu = document.getElementById('menu');
+      function show(name) {
+        document.querySelectorAll('.sidebar-menu li').forEach(function (li) {
+          li.classList.toggle('active', li.getAttribute('data-page') === name);
+        });
+        document.querySelectorAll('.panel').forEach(function (p) {
+          p.classList.toggle('active', p.id === 'panel-' + name);
+        });
+        var main = document.getElementById('main');
+        if (main) main.scrollTop = 0;
+      }
+      menu.addEventListener('click', function (e) {
+        var li = e.target.closest('li[data-page]');
+        if (!li) return;
+        show(li.getAttribute('data-page'));
+      });
+      document.querySelectorAll('[data-jump]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          show(btn.getAttribute('data-jump'));
+        });
+      });
+      document.getElementById('btnChatSend').addEventListener('click', function () {
+        var input = document.getElementById('chatInput');
+        var text = (input.value || '').trim();
+        if (!text) return;
+        var log = document.querySelector('#panel-chat .chat-log');
+        var me = document.createElement('div');
+        me.className = 'bubble me';
+        me.textContent = text;
+        log.appendChild(me);
+        var ai = document.createElement('div');
+        ai.className = 'bubble ai';
+        ai.textContent = '（演示）已收到：「' + text + '」。后续将接入真实 Agent 接口。';
+        log.appendChild(ai);
+        input.value = '';
+        log.scrollTop = log.scrollHeight;
+      });
+    })();
+  </script>
+</body>
+</html>

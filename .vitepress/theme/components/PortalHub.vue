@@ -19,28 +19,30 @@ function onEnter(sys, e) {
 
 <template>
   <div class="mx-portal">
-    <header class="mx-portal__hero">
-      <p class="mx-portal__hello">您好!</p>
-      <h1 class="mx-portal__title">欢迎来到我的个人博客</h1>
-      <p class="mx-portal__sub">
-        四年+嵌入式开发，持续成长、朝着极客方向前进。
-      </p>
-    </header>
+    <div class="mx-portal__inner">
+      <header class="mx-portal__hero">
+        <p class="mx-portal__hello">您好！</p>
+        <h1 class="mx-portal__title">欢迎来到我的个人博客</h1>
+        <p class="mx-portal__sub">
+          四年+嵌入式开发，持续成长、朝着极客方向前进。
+        </p>
+      </header>
 
-    <div class="mx-portal__cards">
-      <a
-        v-for="sys in portalSystems"
-        :key="sys.id"
-        class="mx-portal__card"
-        :class="[sys.variant, { featured: sys.featured, disabled: !sys.enabled }]"
-        :href="sys.enabled ? sys.link : '#'"
-        @click="onEnter(sys, $event)"
-      >
-        <span class="mx-portal__tag">{{ sys.tag }}</span>
-        <h2>{{ sys.title }}</h2>
-        <p>{{ sys.desc }}</p>
-        <span class="mx-portal__go">{{ sys.goText }} →</span>
-      </a>
+      <div class="mx-portal__cards">
+        <a
+          v-for="sys in portalSystems"
+          :key="sys.id"
+          class="mx-portal__card"
+          :class="[sys.variant, { featured: sys.featured, disabled: !sys.enabled }]"
+          :href="sys.enabled ? sys.link : '#'"
+          @click="onEnter(sys, $event)"
+        >
+          <span class="mx-portal__tag">{{ sys.tag }}</span>
+          <h2>{{ sys.title }}</h2>
+          <p>{{ sys.desc }}</p>
+          <span class="mx-portal__go">{{ sys.goText }} →</span>
+        </a>
+      </div>
     </div>
   </div>
 </template>
@@ -49,50 +51,60 @@ function onEnter(sys, e) {
 .mx-portal {
   --mx-font: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   --mx-display: "Outfit", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
-  max-width: 980px;
-  margin: 0 auto;
-  padding: clamp(32px, 6vh, 64px) 20px 64px;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: calc(100vh - var(--vp-nav-height, 64px) - 48px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(16px, 3.5vh, 32px) 24px 48px;
   font-family: var(--mx-font);
   color: #f8fafc;
-  box-sizing: border-box;
+}
+
+.mx-portal__inner {
+  width: 100%;
+  max-width: 1040px;
+  animation: mx-in 0.5s ease both;
 }
 
 .mx-portal__hero {
-  max-width: 560px;
-  animation: mx-in 0.5s ease both;
+  max-width: 720px;
 }
 
 .mx-portal__hello {
   margin: 0;
   color: #5eead4;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--mx-display);
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
 }
 
 .mx-portal__title {
-  margin: 8px 0 12px;
+  margin: 14px 0 14px;
   font-family: var(--mx-display);
-  font-size: clamp(28px, 4.5vw, 40px);
+  font-size: clamp(30px, 4.2vw, 44px);
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.2;
+  line-height: 1.22;
   color: #fff;
 }
 
 .mx-portal__sub {
   margin: 0;
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(226, 232, 240, 0.82);
   line-height: 1.7;
-  font-size: 15px;
+  font-size: clamp(15px, 1.5vw, 17px);
+  max-width: 36em;
 }
 
 .mx-portal__cards {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: 14px;
-  margin-top: 36px;
-  animation: mx-in 0.55s ease 0.06s both;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: clamp(28px, 3.5vh, 40px);
 }
 
 .mx-portal__card {
@@ -101,8 +113,8 @@ function onEnter(sys, e) {
   text-decoration: none;
   color: #fff;
   border-radius: 18px;
-  padding: 22px;
-  min-height: 220px;
+  padding: 26px 24px;
+  min-height: 236px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: rgba(15, 23, 42, 0.35);
   backdrop-filter: blur(8px);
@@ -118,7 +130,7 @@ function onEnter(sys, e) {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.85;
+  opacity: 0.88;
 }
 
 .mx-portal__card.blog::before {
@@ -144,10 +156,6 @@ function onEnter(sys, e) {
   outline-offset: 3px;
 }
 
-.mx-portal__card.featured {
-  min-height: 240px;
-}
-
 .mx-portal__card.disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -156,15 +164,15 @@ function onEnter(sys, e) {
 
 .mx-portal__tag {
   align-self: flex-start;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .mx-portal__card h2 {
-  margin: 14px 0 8px;
+  margin: 16px 0 10px;
   font-family: var(--mx-display);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
@@ -177,13 +185,13 @@ function onEnter(sys, e) {
 .mx-portal__card p {
   margin: 0;
   flex: 1;
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.84);
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .mx-portal__go {
-  margin-top: 18px;
+  margin-top: 20px;
   font-size: 14px;
   font-weight: 600;
   color: #fef3c7;
@@ -205,20 +213,22 @@ function onEnter(sys, e) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mx-portal__hero,
-  .mx-portal__cards,
+  .mx-portal__inner,
   .mx-portal__card {
     animation: none !important;
     transition: none !important;
   }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 900px) {
+  .mx-portal {
+    min-height: auto;
+    padding-top: 24px;
+  }
   .mx-portal__cards {
     grid-template-columns: 1fr;
   }
-  .mx-portal__card,
-  .mx-portal__card.featured {
+  .mx-portal__card {
     min-height: 180px;
   }
 }

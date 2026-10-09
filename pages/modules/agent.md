@@ -1,21 +1,10 @@
 ---
 title: Agent 助手
-description: Agent 助手模块框架占位
+description: Agent 助手界面演示（布局对齐 Agent 主壳）
+aside: false
+sidebar: false
+outline: false
+pageClass: module-demo-page
 ---
 
-# Agent 助手
-
-> 当前为**框架占位页**，尚未接入实际 Agent 能力。
-
-## 规划能力（待实现）
-
-- 知识库问答
-- 故障分析
-- 评审 / 报告辅助
-- 与博客模块相互独立
-
-## 说明
-
-从门户进入本页仅用于确认路由与模块边界。后续在本目录扩展页面与接口即可，不必改门户双/多卡结构。
-
-[← 返回功能入口](/)
+<ModuleDemoEmbed src="/modules/agent/index.html" title="Agent 助手界面演示" />

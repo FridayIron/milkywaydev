@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>工作计划 · 界面演示</title>
+  <link rel="stylesheet" href="./demo.css" />
+</head>
+<body>
+  <div class="wb-shell">
+    <header class="wb-top">
+      <div class="wb-brand">
+        <h1>Workbench</h1>
+        <span class="wb-badge">界面演示 · 功能待接入</span>
+      </div>
+      <div class="wb-top-right">
+        <span>演示账号</span>
+        <a href="/" target="_parent">功能入口</a>
+        <a href="/pages/modules/agent" target="_parent">返回 Agent</a>
+      </div>
+    </header>
+
+    <div class="wb-main">
+      <nav class="wb-nav" id="wbNav">
+        <button type="button" data-view="home" class="active">总览</button>
+        <button type="button" data-view="focus">我的待办</button>
+        <button type="button" data-view="plans">任务列表</button>
+        <button type="button" data-view="board">看板</button>
+        <button type="button" data-view="daily">每日记录</button>
+        <button type="button" data-view="weekly">周报</button>
+        <button type="button" data-view="monthly">月度总结</button>
+        <button type="button" data-view="gantt">甘特图</button>
+        <button type="button" data-view="handover">交接沉淀</button>
+      </nav>
+
+      <main class="wb-content">
+        <section class="view active" id="view-home">
+          <div class="stats">
+            <div class="stat"><div class="label">进行中</div><div class="num">5</div></div>
+            <div class="stat"><div class="label">今日待办</div><div class="num">3</div></div>
+            <div class="stat"><div class="label">本周完成</div><div class="num">8</div></div>
+            <div class="stat"><div class="label">逾期</div><div class="num">1</div></div>
+          </div>
+          <div class="block">
+            <h3>本周焦点 <span class="tag">示例</span></h3>
+            <div class="row"><span>步进电机工具页优化</span><span class="pill">进行中</span></div>
+            <div class="row"><span>博客门户三模块联调</span><span class="pill warn">今日</span></div>
+            <div class="row"><span>Agent 演示壳接入</span><span class="pill done">已完成</span></div>
+            <p class="muted" style="margin-top:12px;">正式版将从独立工作计划库读取真实任务与日志。</p>
+          </div>
+        </section>
+
+        <section class="view" id="view-focus">
+          <div class="block">
+            <h3>我的待办</h3>
+            <div class="row"><span>□ 完善工作计划演示交互</span><span class="pill warn">高</span></div>
+            <div class="row"><span>□ 写本周周报草稿</span><span class="pill">中</span></div>
+            <div class="row"><span>□ 整理故障案例提纲</span><span class="pill">中</span></div>
+            <button class="wb-btn" type="button" disabled style="margin-top:12px;">新建待办（待接入）</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-plans">
+          <div class="block">
+            <h3>任务列表</h3>
+            <div class="row"><span>P-101 门户入口改版</span><span class="pill done">已完成</span></div>
+            <div class="row"><span>P-108 Agent 演示壳</span><span class="pill">进行中</span></div>
+            <div class="row"><span>P-112 工作计划数据层</span><span class="pill warn">规划中</span></div>
+            <button class="wb-btn ghost" type="button" disabled style="margin-top:12px;">筛选 / 新建（待接入）</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-board">
+          <div class="board">
+            <div class="col">
+              <h4>待办</h4>
+              <div class="card-item">数据层设计</div>
+              <div class="card-item">甘特真实排期</div>
+            </div>
+            <div class="col">
+              <h4>进行中</h4>
+              <div class="card-item">界面演示联调</div>
+            </div>
+            <div class="col">
+              <h4>已完成</h4>
+              <div class="card-item">门户三入口</div>
+              <div class="card-item">星空背景恢复</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-daily">
+          <div class="block">
+            <h3>每日记录</h3>
+            <div class="row"><span>2026-10-09</span><span class="muted">完成 Agent / 工作计划演示壳</span></div>
+            <div class="row"><span>2026-10-08</span><span class="muted">调整门户布局与导航对比度</span></div>
+            <button class="wb-btn" type="button" disabled style="margin-top:12px;">写今日记录（待接入）</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-weekly">
+          <div class="block">
+            <h3>周报</h3>
+            <p class="muted">第 41 周（示意）</p>
+            <div class="row"><span>进展</span><span class="muted">门户模块化、演示界面</span></div>
+            <div class="row"><span>风险</span><span class="muted">后端尚未接入</span></div>
+            <div class="row"><span>下周</span><span class="muted">对接真实 API</span></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-monthly">
+          <div class="block">
+            <h3>月度总结</h3>
+            <p class="muted">10 月目标（示意）：完成个人站三大模块骨架，逐步接入 Agent 与工作计划能力。</p>
+            <button class="wb-btn ghost" type="button" disabled style="margin-top:12px;">生成月报（待接入）</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-gantt">
+          <div class="block">
+            <h3>甘特图 <span class="tag">示意条</span></h3>
+            <div class="gantt-bar" style="width:70%;">门户改版 · 10/01–10/09</div>
+            <div class="gantt-bar" style="width:45%; background:linear-gradient(90deg,#fdba74,#fb923c); color:#7c2d12;">Agent 演示 · 10/08–10/12</div>
+            <div class="gantt-bar" style="width:55%; background:linear-gradient(90deg,#93c5fd,#60a5fa); color:#1e3a8a;">工作计划数据 · 待排期</div>
+            <p class="muted" style="margin-top:10px;">正式版将按任务起止日期渲染真实甘特。</p>
+          </div>
+        </section>
+
+        <section class="view" id="view-handover">
+          <div class="block">
+            <h3>交接沉淀</h3>
+            <div class="row"><span>博客 Pages 发布流程</span><span class="muted">必须 deploy 后再 push docs/</span></div>
+            <div class="row"><span>模块边界</span><span class="muted">博客 / Agent / 工作计划相互独立</span></div>
+            <button class="wb-btn" type="button" disabled style="margin-top:12px;">新增交接条目（待接入）</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var nav = document.getElementById('wbNav');
+      function show(name) {
+        nav.querySelectorAll('button').forEach(function (b) {
+          b.classList.toggle('active', b.getAttribute('data-view') === name);
+        });
+        document.querySelectorAll('.view').forEach(function (v) {
+          v.classList.toggle('active', v.id === 'view-' + name);
+        });
+      }
+      nav.addEventListener('click', function (e) {
+        var btn = e.target.closest('button[data-view]');
+        if (!btn) return;
+        show(btn.getAttribute('data-view'));
+      });
+    })();
+  </script>
+</body>
+</html>
