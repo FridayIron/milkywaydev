@@ -243,6 +243,44 @@
             color: #409eff;
             font-size: 16px;
         }
+
+        @media (max-width: 700px) {
+            body {
+                margin: 0;
+                padding: 10px;
+            }
+            .container {
+                padding: 16px;
+                border-radius: 0;
+            }
+            h1 {
+                font-size: 20px;
+                margin-bottom: 16px;
+            }
+            .preview-box {
+                min-width: 0;
+                flex: 1 1 100%;
+            }
+            .preview-img, .preview-svg {
+                height: 200px;
+            }
+            .btn-group {
+                flex-direction: column;
+            }
+            .btn-group button {
+                width: 100%;
+            }
+            .dimension-inputs input {
+                width: 90px;
+            }
+            .ratio-mode {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .upload-area {
+                padding: 28px 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -363,17 +401,37 @@
             });
         });
 
-        // 尺寸输入框值变化监听
-        targetWidthInput.addEventListener('change', () => {
-            if (targetWidthInput.value && targetWidthInput.value > 0) {
-                targetWidth = parseInt(targetWidthInput.value);
+        const MAX_OUTPUT_SIDE = 1024;
+
+        function syncTargetDimensions() {
+            const w = parseInt(targetWidthInput.value, 10);
+            const h = parseInt(targetHeightInput.value, 10);
+            if (!Number.isFinite(w) || !Number.isFinite(h) || w < 1 || h < 1) {
+                return false;
             }
-        });
-        targetHeightInput.addEventListener('change', () => {
-            if (targetHeightInput.value && targetHeightInput.value > 0) {
-                targetHeight = parseInt(targetHeightInput.value);
+            if (w > MAX_OUTPUT_SIDE || h > MAX_OUTPUT_SIDE) {
+                alert(`输出尺寸单边不能超过 ${MAX_OUTPUT_SIDE}px（过大易导致浏览器卡死）`);
+                return false;
             }
-        });
+            targetWidth = w;
+            targetHeight = h;
+            return true;
+        }
+
+        function resolveOutputSize(imgWidth, imgHeight) {
+            if (ratioMode === 'fill') {
+                return { width: targetWidth, height: targetHeight, mode: 'fill' };
+            }
+            // 等比例适配：输出画布即为适配后的真实尺寸（不再留透明边）
+            const ratio = Math.min(targetWidth / imgWidth, targetHeight / imgHeight);
+            const width = Math.max(1, Math.floor(imgWidth * ratio));
+            const height = Math.max(1, Math.floor(imgHeight * ratio));
+            return { width, height, mode: 'fit' };
+        }
+
+        // 尺寸输入框值变化监听（input 实时同步，避免未失焦就转换）
+        targetWidthInput.addEventListener('input', () => { syncTargetDimensions(); });
+        targetHeightInput.addEventListener('input', () => { syncTargetDimensions(); });
 
         // 应用尺寸设置按钮点击事件
         applyDimensionBtn.addEventListener('click', () => {
@@ -381,23 +439,22 @@
                 alert('请先上传PNG图片！');
                 return;
             }
-            if (!targetWidth || !targetHeight || targetWidth <=0 || targetHeight <=0) {
+            if (!syncTargetDimensions()) {
                 alert('请输入有效的目标尺寸！');
                 return;
             }
+            if (!originalWidth || !originalHeight) {
+                alert('原图尺寸尚未就绪，请稍候再试');
+                return;
+            }
             
-            // 显示尺寸提示
-            if (ratioMode === 'fit') {
-                // 等比例适配：计算不超出目标尺寸的最大尺寸
-                const ratio = Math.min(targetWidth / originalWidth, targetHeight / originalHeight);
-                const fitWidth = Math.floor(originalWidth * ratio);
-                const fitHeight = Math.floor(originalHeight * ratio);
-                svgDimensionInfo.innerHTML = `待输出尺寸：${fitWidth} × ${fitHeight}（等比例适配）`;
-                alert(`已设置等比例适配尺寸：${fitWidth} × ${fitHeight}`);
+            const out = resolveOutputSize(originalWidth, originalHeight);
+            if (out.mode === 'fit') {
+                svgDimensionInfo.innerHTML = `待输出尺寸：${out.width} × ${out.height}（等比例适配）`;
+                alert(`已设置等比例适配尺寸：${out.width} × ${out.height}`);
             } else {
-                // 强制填充：直接使用输入的尺寸
-                svgDimensionInfo.innerHTML = `待输出尺寸：${targetWidth} × ${targetHeight}（强制比例）`;
-                alert(`已设置强制输出尺寸：${targetWidth} × ${targetHeight}`);
+                svgDimensionInfo.innerHTML = `待输出尺寸：${out.width} × ${out.height}（强制比例）`;
+                alert(`已设置强制输出尺寸：${out.width} × ${out.height}`);
             }
         });
 
@@ -476,13 +533,16 @@
             downloadBtn.style.display = 'none';
         }
 
+        let lastOutputWidth = 64;
+        let lastOutputHeight = 64;
+
         // 转换按钮点击事件
         convertBtn.addEventListener('click', async () => {
             if (!uploadedFile) {
                 alert('请先上传PNG图片！');
                 return;
             }
-            if (targetWidth <=0 || targetHeight <=0) {
+            if (!syncTargetDimensions()) {
                 alert('请先设置有效的输出尺寸！');
                 return;
             }
@@ -498,7 +558,7 @@
                 svgPreview.innerHTML = svgData;
                 
                 // 显示最终尺寸和大小信息
-                svgDimensionInfo.innerHTML = `输出尺寸：${targetWidth} × ${targetHeight}`;
+                svgDimensionInfo.innerHTML = `输出尺寸：${lastOutputWidth} × ${lastOutputHeight}`;
                 const svgSize = new Blob([svgData], { type: 'image/svg+xml' }).size;
                 const svgSizeKB = (svgSize / 1024).toFixed(2);
                 svgSizeInfo.innerHTML = `文件大小：${svgSizeKB} KB`;
@@ -523,7 +583,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${uploadedFile.name.replace('.png', '')}_${targetWidth}x${targetHeight}.svg`;
+            a.download = `${uploadedFile.name.replace(/\.png$/i, '')}_${lastOutputWidth}x${lastOutputHeight}.svg`;
             a.click();
             
             // 释放URL对象
@@ -580,43 +640,33 @@
                     img.onload = () => {
                         try {
                             let pixelStep = 1; // 像素步长
+                            const out = resolveOutputSize(img.width, img.height);
+                            const outW = out.width;
+                            const outH = out.height;
+                            lastOutputWidth = outW;
+                            lastOutputHeight = outH;
                             
-                            // 创建canvas（直接使用目标尺寸）
+                            // 创建canvas（fit 用真实适配尺寸，fill 用目标尺寸）
                             const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            canvas.width = targetWidth;
-                            canvas.height = targetHeight;
-                            
-                            if (ratioMode === 'fit') {
-                                // 等比例适配：居中绘制，不拉伸
-                                const ratio = Math.min(targetWidth / img.width, targetHeight / img.height);
-                                const drawWidth = img.width * ratio;
-                                const drawHeight = img.height * ratio;
-                                const offsetX = (targetWidth - drawWidth) / 2;
-                                const offsetY = (targetHeight - drawHeight) / 2;
-                                
-                                // 清空画布（透明背景）
-                                ctx.clearRect(0, 0, targetWidth, targetHeight);
-                                // 居中绘制等比例缩放后的图片
-                                ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-                            } else {
-                                // 强制填充：拉伸/压缩到目标尺寸
-                                ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-                            }
+                            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                            canvas.width = outW;
+                            canvas.height = outH;
+                            ctx.clearRect(0, 0, outW, outH);
+                            ctx.drawImage(img, 0, 0, outW, outH);
                             
                             // 获取像素数据
-                            let imageData = ctx.getImageData(0, 0, targetWidth, targetHeight);
+                            let imageData = ctx.getImageData(0, 0, outW, outH);
                             let pixels = imageData.data;
                             
                             // 如果有大小限制，调整像素步长来控制大小
                             if (selectedMaxSize > 0) {
-                                let tempSvg = generateSvgFromPixels(pixels, targetWidth, targetHeight, 1);
+                                let tempSvg = generateSvgFromPixels(pixels, outW, outH, 1);
                                 let tempSize = calculateSvgSize(tempSvg) / 1024;
                                 
                                 // 逐步增加步长，直到大小符合限制（最大步长10）
                                 while (tempSize > selectedMaxSize && pixelStep < 10) {
                                     pixelStep += 1;
-                                    tempSvg = generateSvgFromPixels(pixels, targetWidth, targetHeight, pixelStep);
+                                    tempSvg = generateSvgFromPixels(pixels, outW, outH, pixelStep);
                                     tempSize = calculateSvgSize(tempSvg) / 1024;
                                 }
                             }
@@ -624,8 +674,8 @@
                             // 生成最终SVG
                             const finalSvg = generateSvgFromPixels(
                                 pixels, 
-                                targetWidth, 
-                                targetHeight, 
+                                outW, 
+                                outH, 
                                 pixelStep
                             );
                             

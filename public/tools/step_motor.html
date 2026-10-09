@@ -170,7 +170,9 @@
         
         .table-container {
             max-height: 300px;
+            overflow-x: auto;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         
         table {
@@ -352,6 +354,56 @@
             font-weight: bold;
             margin-bottom: 5px;
             color: #333;
+        }
+
+        @media (max-width: 1100px) {
+            body {
+                padding: 10px;
+            }
+
+            .main-content,
+            .params-container {
+                flex-direction: column;
+            }
+
+            .params-panel,
+            .motor-params-panel {
+                width: 100%;
+            }
+
+            .chart-container {
+                height: 280px;
+            }
+
+            .dual-axis-info {
+                flex-wrap: wrap;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .panel,
+            .params-panel,
+            .motor-params-panel,
+            .formula-panel {
+                padding: 14px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            .button-group button {
+                width: 100%;
+            }
+
+            table {
+                min-width: 720px;
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
         }
     </style>
 </head>
@@ -628,11 +680,19 @@
             }
         };
 
+        // 最近一次成功计算的图表数据（用于窗口缩放重绘）
+        let lastChartData = null;
+
         // 计算转换参数并更新显示
         function calculateConversionParams() {
             try {
-                const motorLines = parseInt(document.getElementById('motorLines').value);
-                const microstep = parseInt(document.getElementById('microstep').value);
+                const motorLines = parseInt(document.getElementById('motorLines').value, 10);
+                const microstep = parseInt(document.getElementById('microstep').value, 10);
+
+                if (!Number.isFinite(motorLines) || motorLines < 1 ||
+                    !Number.isFinite(microstep) || microstep < 1) {
+                    throw new Error('电机线数与细分数必须为大于 0 的整数');
+                }
                 
                 // 计算每圈脉冲数 = 电机线数 × 细分数 × 2
                 const pulsesPerRevolution = motorLines * microstep * 2;
@@ -665,9 +725,17 @@
 
         // 检查总路程是否足够
         function checkTotalDistance() {
-            const startVelSteps = parseInt(document.getElementById('startVelSteps').value);
+            const startVelSteps = parseInt(document.getElementById('startVelSteps').value, 10);
             const accelTotal = calculateAccelDistance();
-            const totalDistance = parseInt(document.getElementById('totalDistanceSteps').value);
+            const totalDistance = parseInt(document.getElementById('totalDistanceSteps').value, 10);
+            const warningEl = document.getElementById('distanceWarning');
+
+            if (![startVelSteps, accelTotal, totalDistance].every(n => Number.isFinite(n) && n >= 0)) {
+                warningEl.style.display = 'block';
+                warningEl.textContent = '警告: 步数参数无效，请检查输入';
+                return false;
+            }
+            warningEl.textContent = '警告: 总路程小于最小必需步数，无法完成运动';
             
             // 计算最小必需步数
             const minRequired = startVelSteps + 2 * accelTotal; // 起始段 + 加速段 + 减速段
@@ -678,7 +746,6 @@
             document.getElementById('cruiseStepsResult').textContent = cruiseSteps;
             
             // 显示警告如果总路程不足
-            const warningEl = document.getElementById('distanceWarning');
             if (totalDistance < minRequired) {
                 warningEl.style.display = 'block';
                 return false;
@@ -693,15 +760,19 @@
             return rps * pulsesPerRevolution;
         }
 
-        // 转换steps/s到Hz
+        // 转换steps/s到Hz（返回数值，避免字符串参与后续运算）
         function stepsPerSecondToHz(steps) {
-            return steps.toFixed(2);
+            return Math.round(steps * 100) / 100;
         }
 
         // 转换Hz到定时器周期(ms)
         function hzToPeriodMs(hz) {
-            if (hz <= 0) return 0;
-            return (1000 / hz).toFixed(4);
+            if (!Number.isFinite(hz) || hz <= 0) return null;
+            return Math.round((1000 / hz) * 10000) / 10000;
+        }
+
+        function formatPeriodMs(periodMs) {
+            return periodMs == null ? '—' : periodMs.toFixed(4);
         }
 
         // 当参数变化时重新计算相关值
@@ -883,12 +954,18 @@
                 }
 
                 // 验证其他参数
-                if (startVelRps < 0 || accelEndVelRps <= startVelRps || 
-                    decelStartVelRps < decelEndVelRps || decelEndVelRps < 0) {
-                    throw new Error("速度参数设置无效");
+                if (![startVelRps, accelEndVelRps, decelStartVelRps, decelEndVelRps,
+                      startVelSteps, accelSegments, accelStepsPerSegment, totalDistanceSteps,
+                      pulsesPerRevolution].every(Number.isFinite)) {
+                    throw new Error("存在无效数值参数，请检查输入");
                 }
-                if (accelStepsPerSegment <= 0 || accelSegments <= 0) {
-                    throw new Error("步数和台阶数参数必须大于0");
+                if (startVelRps <= 0 || accelEndVelRps <= startVelRps ||
+                    decelStartVelRps <= decelEndVelRps || decelEndVelRps <= 0) {
+                    throw new Error("速度必须大于 0，且加速结束速度需高于起始速度");
+                }
+                if (accelStepsPerSegment <= 0 || accelSegments <= 0 || startVelSteps < 0 ||
+                    totalDistanceSteps <= 0 || pulsesPerRevolution <= 0) {
+                    throw new Error("步数、台阶数与脉冲参数必须为正数");
                 }
 
                 // 创建加速和减速公式函数
@@ -913,7 +990,7 @@
                         throw new Error(`加速公式计算错误（台阶 ${i}）: ${error.message}`);
                     }
                     
-                    if (typeof vel !== 'number' || isNaN(vel) || !isFinite(vel) || vel < 0) {
+                    if (typeof vel !== 'number' || isNaN(vel) || !isFinite(vel) || vel <= 0) {
                         throw new Error(`加速公式返回无效速度值（台阶 ${i}）: ${vel}`);
                     }
                     
@@ -933,7 +1010,7 @@
                         throw new Error(`减速公式计算错误（台阶 ${i}）: ${error.message}`);
                     }
                     
-                    if (typeof vel !== 'number' || isNaN(vel) || !isFinite(vel) || vel < 0) {
+                    if (typeof vel !== 'number' || isNaN(vel) || !isFinite(vel) || vel <= 0) {
                         throw new Error(`减速公式返回无效速度值（台阶 ${i}）: ${vel}`);
                     }
                     
@@ -945,135 +1022,69 @@
                 let cumulativeSteps = 0;
                 let cumulativeTime = 0; // 累计时间(ms)
 
+                const pushPhasePoint = (phase, step, velRps, steps, extra = {}) => {
+                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
+                    const frequency = stepsPerSecondToHz(velSteps);
+                    const periodMs = hzToPeriodMs(frequency);
+                    if (periodMs == null) {
+                        throw new Error(`${phase} 阶段速度过低，无法计算定时器周期`);
+                    }
+                    const stepTime = steps * periodMs;
+                    cumulativeSteps += steps;
+                    cumulativeTime += stepTime;
+                    const point = {
+                        phase,
+                        step,
+                        velocityRps: velRps,
+                        velocitySteps: Math.round(velSteps * 100) / 100,
+                        frequency: frequency.toFixed(2),
+                        periodMs: formatPeriodMs(periodMs),
+                        steps,
+                        cumulativeSteps,
+                        cumulativeTime: cumulativeTime.toFixed(2),
+                        stepTime,
+                        ...extra
+                    };
+                    fullVelocityData.push(point);
+                    return point;
+                };
+
                 // 起始速度阶段
                 if (startVelSteps > 0) {
-                    const steps = startVelSteps;
-                    cumulativeSteps += steps;
-                    
-                    // 转换为steps/s和Hz
-                    const velRps = startVelRps;
-                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
-                    const frequency = stepsPerSecondToHz(velSteps);
-                    const periodMs = hzToPeriodMs(parseFloat(frequency));
-                    
-                    // 计算本台阶所需时间(ms) = 步数 × 周期(ms)
-                    const stepTime = steps * parseFloat(periodMs);
-                    cumulativeTime += stepTime;
-                    
-                    fullVelocityData.push({
-                        phase: "起始速度",
-                        step: 1,
-                        velocityRps: velRps,
-                        velocitySteps: Math.round(velSteps * 100) / 100,
-                        frequency: frequency,
-                        periodMs: periodMs,
-                        steps: steps,
-                        cumulativeSteps: cumulativeSteps,
-                        cumulativeTime: cumulativeTime.toFixed(2)
-                    });
+                    pushPhasePoint("起始速度", 1, startVelRps, startVelSteps);
                 }
 
-                // 加速阶段 - 用于图表
+                // 加速阶段 - 用于图表与表格
                 let accelCumulativeSteps = 0;
                 let accelCumulativeTime = 0;
-                const accelOnlyData = []; // 仅加速段数据，用于表格
+                const accelOnlyData = [];
                 
                 for (let i = 0; i < accelSegments; i++) {
-                    const steps = accelStepsPerSegment;
-                    cumulativeSteps += steps;
-                    accelCumulativeSteps += steps;
+                    const point = pushPhasePoint("加速", i + 1, accelVelocitiesRps[i], accelStepsPerSegment);
+                    accelCumulativeSteps += accelStepsPerSegment;
+                    accelCumulativeTime += point.stepTime;
                     
-                    // 转换为steps/s和Hz
-                    const velRps = accelVelocitiesRps[i];
-                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
-                    const frequency = stepsPerSecondToHz(velSteps);
-                    const periodMs = hzToPeriodMs(parseFloat(frequency));
-                    
-                    // 计算本台阶所需时间(ms)
-                    const stepTime = steps * parseFloat(periodMs);
-                    cumulativeTime += stepTime;
-                    accelCumulativeTime += stepTime;
-                    
-                    // 添加到完整数据（图表用）
-                    fullVelocityData.push({
-                        phase: "加速",
-                        step: i + 1,
-                        velocityRps: velRps,
-                        velocitySteps: Math.round(velSteps * 100) / 100,
-                        frequency: frequency,
-                        periodMs: periodMs,
-                        steps: steps,
-                        cumulativeSteps: cumulativeSteps,
-                        cumulativeTime: cumulativeTime.toFixed(2)
-                    });
-                    
-                    // 添加到加速段数据（表格用）
                     accelOnlyData.push({
                         step: i + 1,
-                        velocityRps: velRps,
-                        velocitySteps: Math.round(velSteps * 100) / 100,
-                        frequency: frequency,
-                        periodMs: periodMs,
-                        steps: steps,
+                        velocityRps: point.velocityRps,
+                        velocitySteps: point.velocitySteps,
+                        frequency: point.frequency,
+                        periodMs: point.periodMs,
+                        steps: point.steps,
                         cumulativeAccelSteps: accelCumulativeSteps,
-                        stepTime: stepTime.toFixed(2),
+                        stepTime: point.stepTime.toFixed(2),
                         cumulativeAccelTime: accelCumulativeTime.toFixed(2)
                     });
                 }
 
                 // 匀速阶段
                 if (cruiseSteps > 0) {
-                    cumulativeSteps += cruiseSteps;
-                    
-                    // 转换为steps/s和Hz
-                    const velRps = accelEndVelRps;
-                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
-                    const frequency = stepsPerSecondToHz(velSteps);
-                    const periodMs = hzToPeriodMs(parseFloat(frequency));
-                    
-                    // 计算本台阶所需时间(ms)
-                    const stepTime = cruiseSteps * parseFloat(periodMs);
-                    cumulativeTime += stepTime;
-                    
-                    fullVelocityData.push({
-                        phase: "匀速",
-                        step: 1,
-                        velocityRps: velRps,
-                        velocitySteps: Math.round(velSteps * 100) / 100,
-                        frequency: frequency,
-                        periodMs: periodMs,
-                        steps: cruiseSteps,
-                        cumulativeSteps: cumulativeSteps,
-                        cumulativeTime: cumulativeTime.toFixed(2)
-                    });
+                    pushPhasePoint("匀速", 1, accelEndVelRps, cruiseSteps);
                 }
 
                 // 减速阶段
                 for (let i = 0; i < accelSegments; i++) {
-                    const steps = accelStepsPerSegment;
-                    cumulativeSteps += steps;
-                    
-                    // 转换为steps/s和Hz
-                    const velRps = decelVelocitiesRps[i];
-                    const velSteps = rpsToStepsPerSecond(velRps, pulsesPerRevolution);
-                    const frequency = stepsPerSecondToHz(velSteps);
-                    const periodMs = hzToPeriodMs(parseFloat(frequency));
-                    
-                    // 计算本台阶所需时间(ms)
-                    const stepTime = steps * parseFloat(periodMs);
-                    cumulativeTime += stepTime;
-                    
-                    fullVelocityData.push({
-                        phase: "减速",
-                        step: i + 1,
-                        velocityRps: velRps,
-                        velocitySteps: Math.round(velSteps * 100) / 100,
-                        frequency: frequency,
-                        periodMs: periodMs,
-                        steps: steps,
-                        cumulativeSteps: cumulativeSteps,
-                        cumulativeTime: cumulativeTime.toFixed(2)
-                    });
+                    pushPhasePoint("减速", i + 1, decelVelocitiesRps[i], accelStepsPerSegment);
                 }
 
                 return {
@@ -1092,72 +1103,94 @@
         function drawChart(data) {
             const canvas = document.getElementById('speedChart');
             const ctx = canvas.getContext('2d');
+            resizeCanvas();
             
             // 清空画布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            if (!data || data.length === 0) return;
+            if (!data || data.length === 0) {
+                document.getElementById('calculatingIndicator').style.display = 'none';
+                return;
+            }
 
-            // 设置边距
-            const margin = { top: 30, right: 100, bottom: 60, left: 60 };
-            const width = canvas.width - margin.left - margin.right;
-            const height = canvas.height - margin.top - margin.bottom;
+            lastChartData = data;
+
+            // 设置边距（窄屏收紧左右边距）
+            const narrow = canvas.width < 520;
+            const margin = {
+                top: 30,
+                right: narrow ? 54 : 100,
+                bottom: 60,
+                left: narrow ? 44 : 60
+            };
+            const width = Math.max(40, canvas.width - margin.left - margin.right);
+            const height = Math.max(40, canvas.height - margin.top - margin.bottom);
 
             // 准备数据
             const points = [];
             
             // 添加第一个点（起点）
+            const firstPeriod = parseFloat(data[0].periodMs);
             const firstPoint = { 
                 x: 0, 
                 y: data[0].velocitySteps,
-                period: parseFloat(data[0].periodMs),
+                period: Number.isFinite(firstPeriod) ? firstPeriod : 0,
                 phase: data[0].phase
             };
             points.push(firstPoint);
             
             // 为每个数据段添加足够的点以显示曲线特征
             data.forEach(item => {
-                if (points.length > 0) {
-                    const prev = points[points.length - 1];
-                    const currentX = parseFloat(item.cumulativeTime);
-                    const currentY = item.velocitySteps;
-                    const currentPeriod = parseFloat(item.periodMs);
+                const prev = points[points.length - 1];
+                const currentX = parseFloat(item.cumulativeTime);
+                const currentY = item.velocitySteps;
+                const currentPeriod = parseFloat(item.periodMs);
+                if (!Number.isFinite(currentX) || !Number.isFinite(currentY) || !Number.isFinite(currentPeriod)) {
+                    return;
+                }
+                
+                // 添加中间点，使曲线特征更明显
+                const steps = 5;
+                for (let s = 1; s <= steps; s++) {
+                    const ratio = s / steps;
+                    const x = prev.x + (currentX - prev.x) * ratio;
+                    const y = prev.y + (currentY - prev.y) * ratio;
+                    const period = prev.period + (currentPeriod - prev.period) * ratio;
                     
-                    // 添加中间点，使曲线特征更明显
-                    const steps = 5; // 每个段添加5个中间点
-                    for (let s = 1; s <= steps; s++) {
-                        const ratio = s / steps;
-                        const x = prev.x + (currentX - prev.x) * ratio;
-                        const y = prev.y + (currentY - prev.y) * ratio;
-                        const period = prev.period + (currentPeriod - prev.period) * ratio;
-                        
-                        points.push({ 
-                            x, 
-                            y,
-                            period,
-                            phase: item.phase
-                        });
-                    }
+                    points.push({ 
+                        x, 
+                        y,
+                        period,
+                        phase: item.phase
+                    });
                 }
             });
 
             // 计算坐标轴范围
-            const maxX = parseFloat(points[points.length - 1].x);
-            const maxY = Math.max(...points.map(p => p.y)) * 1.1;
-            const minY = Math.min(...points.map(p => p.y)) * 0.9;
+            let maxX = parseFloat(points[points.length - 1].x);
+            if (!Number.isFinite(maxX) || maxX <= 0) maxX = 1;
+            const rawMaxY = Math.max(...points.map(p => p.y));
+            const rawMinY = Math.min(...points.map(p => p.y));
+            const maxY = (rawMaxY === rawMinY ? rawMaxY * 1.1 || 1 : rawMaxY * 1.1);
+            const minY = (rawMaxY === rawMinY ? Math.max(0, rawMinY * 0.9) : Math.max(0, rawMinY * 0.9));
             
             // 周期数据范围
-            const maxPeriod = Math.max(...points.map(p => p.period)) * 1.1;
-            const minPeriod = Math.min(...points.map(p => p.period)) * 0.9;
+            const rawMaxPeriod = Math.max(...points.map(p => p.period));
+            const rawMinPeriod = Math.min(...points.map(p => p.period));
+            const maxPeriod = rawMaxPeriod === rawMinPeriod ? rawMaxPeriod * 1.1 || 1 : rawMaxPeriod * 1.1;
+            const minPeriod = rawMaxPeriod === rawMinPeriod ? Math.max(0, rawMinPeriod * 0.9) : Math.max(0, rawMinPeriod * 0.9);
 
             // 坐标转换函数 - 主Y轴(速度)
             const xToCanvas = (x) => margin.left + (x / maxX) * width;
-            const yToCanvas = (y) => margin.top + height - ((y - minY) / (maxY - minY) * height);
+            const yToCanvas = (y) => {
+                const span = maxY - minY || 1;
+                return margin.top + height - ((y - minY) / span * height);
+            };
             
             // 坐标转换函数 - 副Y轴(周期)
             const periodToCanvas = (period) => {
-                if (maxPeriod === minPeriod) return margin.top + height / 2;
-                return margin.top + height - ((period - minPeriod) / (maxPeriod - minPeriod) * height);
+                const span = maxPeriod - minPeriod || 1;
+                return margin.top + height - ((period - minPeriod) / span * height);
             };
 
             // 批量绘制静态元素
@@ -1180,10 +1213,10 @@
             // 同时绘制速度曲线和周期曲线
             requestAnimationFrame(() => {
                 // 绘制速度曲线
-                drawCurve(ctx, points, xToCanvas, yToCanvas, 'blue', 2, false);
+                drawCurve(ctx, points, xToCanvas, yToCanvas, 'blue', 2, false, 'y');
                 
-                // 绘制定时器周期曲线
-                drawCurve(ctx, points, xToCanvas, periodToCanvas, 'purple', 2, true);
+                // 绘制定时器周期曲线（必须取 period，不能用速度值）
+                drawCurve(ctx, points, xToCanvas, periodToCanvas, 'purple', 2, true, 'period');
                 
                 // 绘制所有数据点
                 drawAllDataPoints(ctx, points, xToCanvas, yToCanvas, periodToCanvas);
@@ -1194,7 +1227,9 @@
         }
 
         // 直接绘制完整曲线
-        function drawCurve(ctx, points, xFunc, yFunc, color, lineWidth, isDashed) {
+        function drawCurve(ctx, points, xFunc, yFunc, color, lineWidth, isDashed, valueKey) {
+            if (!points.length) return;
+            const key = valueKey || 'y';
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
             
@@ -1203,10 +1238,10 @@
             }
             
             ctx.beginPath();
-            ctx.moveTo(xFunc(points[0].x), yFunc(points[0].y || points[0].period));
+            ctx.moveTo(xFunc(points[0].x), yFunc(points[0][key]));
             
             for (let i = 1; i < points.length; i++) {
-                ctx.lineTo(xFunc(points[i].x), yFunc(points[i].y || points[i].period));
+                ctx.lineTo(xFunc(points[i].x), yFunc(points[i][key]));
             }
             
             ctx.stroke();
@@ -1239,12 +1274,15 @@
         function drawGrid(ctx, margin, width, height, maxX, maxY, minY, maxPeriod, minPeriod) {
             ctx.strokeStyle = '#eee';
             ctx.lineWidth = 1;
+            const ySpan = (maxY - minY) || 1;
+            const xSpan = maxX || 1;
+            const periodSpan = (maxPeriod - minPeriod) || 1;
             
             // 水平网格线
             const yGridCount = 5;
             for (let i = 0; i <= yGridCount; i++) {
-                const y = minY + (maxY - minY) * (i / yGridCount);
-                const yPos = margin.top + height - ((y - minY) / (maxY - minY) * height);
+                const y = minY + ySpan * (i / yGridCount);
+                const yPos = margin.top + height - ((y - minY) / ySpan * height);
                 ctx.beginPath();
                 ctx.moveTo(margin.left, yPos);
                 ctx.lineTo(margin.left + width, yPos);
@@ -1259,8 +1297,8 @@
             // 垂直网格线
             const xGridCount = 5;
             for (let i = 0; i <= xGridCount; i++) {
-                const x = maxX * (i / xGridCount);
-                const xPos = margin.left + (x / maxX) * width;
+                const x = xSpan * (i / xGridCount);
+                const xPos = margin.left + (x / xSpan) * width;
                 ctx.beginPath();
                 ctx.moveTo(xPos, margin.top);
                 ctx.lineTo(xPos, margin.top + height);
@@ -1276,8 +1314,8 @@
             const periodGridCount = 5;
             ctx.strokeStyle = '#ddd';
             for (let i = 0; i <= periodGridCount; i++) {
-                const period = minPeriod + (maxPeriod - minPeriod) * (i / periodGridCount);
-                const yPos = margin.top + height - ((period - minPeriod) / (maxPeriod - minPeriod) * height);
+                const period = minPeriod + periodSpan * (i / periodGridCount);
+                const yPos = margin.top + height - ((period - minPeriod) / periodSpan * height);
                 
                 // 网格线
                 ctx.beginPath();
@@ -1572,12 +1610,17 @@
             canvas.height = container.clientHeight;
         }
 
-        // 窗口大小改变时重绘图表
+        // 窗口大小改变时重绘图表（避免重复全量计算）
+        let resizeTimer = null;
         window.addEventListener('resize', () => {
-            const tableData = document.querySelector('#resultTable tbody tr');
-            if (tableData) {
-                calculateSCurve();
-            }
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (lastChartData) {
+                    drawChart(lastChartData);
+                } else {
+                    resizeCanvas();
+                }
+            }, 150);
         });
 
         // 初始化页面
