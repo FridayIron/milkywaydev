@@ -28,8 +28,9 @@ html.vp-suppress-anchor .vp-doc .header-anchor {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-.vp-doc :not(.skill-chart-container):not(.header-anchor) {
-  animation: fadeIn 0.5s ease-in-out;
+/* 仅标题区轻微入场，避免整页每个节点都动画造成卡顿 */
+.vp-doc > h1 {
+  animation: fadeIn 0.35s ease-out;
 }
 
 /* 技能星图容器 */
@@ -259,6 +260,142 @@ html {
   max-width: 100%;
   overflow-x: clip;
   box-sizing: border-box;
+}
+
+/*
+ * 左侧栏：一级同级同字体；收紧分组间距（每项自带 items:[] 后分隔线易过密）
+ */
+.VPSidebar .group {
+  padding-top: 2px !important;
+}
+
+.VPSidebar .group + .group {
+  border-top: none !important;
+  padding-top: 0 !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0 {
+  padding-bottom: 2px !important;
+}
+
+.VPSidebar .VPSidebarItem.collapsed.level-0 {
+  padding-bottom: 2px !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0 > .item {
+  border-left: none !important;
+  border-radius: 8px;
+  padding: 2px 8px !important;
+  margin: 0 -8px;
+  transition: background-color 0.15s ease;
+}
+
+.VPSidebar .VPSidebarItem.level-0 > .item:hover {
+  background-color: rgba(15, 23, 42, 0.04);
+}
+
+.VPSidebar .VPSidebarItem.level-0 > .item .text,
+.VPSidebar .VPSidebarItem.level-0 > .item > .link > .text {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 24px;
+  color: var(--vp-c-text-1) !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0.is-active > .item,
+.VPSidebar .VPSidebarItem.level-0.has-active > .item {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.VPSidebar .VPSidebarItem.level-0.is-active > .item > .link > .text,
+.VPSidebar .VPSidebarItem.level-0.has-active > .item > .link > .text,
+.VPSidebar .VPSidebarItem.level-0.is-active > .item > .text {
+  color: var(--vp-c-brand-1) !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0 > .items {
+  margin: 2px 0 8px 10px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(15, 23, 42, 0.08) !important;
+}
+
+.VPSidebar .VPSidebarItem.level-0 > .item > .indicator {
+  display: none !important;
+}
+
+.VPSidebar .VPSidebarItem.level-1 > .item {
+  border-radius: 6px;
+  padding: 1px 8px !important;
+  margin: 0 -4px;
+}
+
+.VPSidebar .VPSidebarItem.level-1 > .item:hover {
+  background-color: rgba(15, 23, 42, 0.04);
+}
+
+.VPSidebar .VPSidebarItem.level-1.is-active > .item {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.VPSidebar .VPSidebarItem.level-1 > .item > .link > .text {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+/* 正文阅读区：更清晰的层级与表格 */
+.vp-doc {
+  font-size: 15.5px;
+  line-height: 1.75;
+}
+
+.vp-doc > h1 {
+  margin-bottom: 1.1rem !important;
+  letter-spacing: -0.02em;
+}
+
+.vp-doc > h2 {
+  margin-top: 2rem !important;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.vp-doc > h2:first-of-type {
+  border-top: none;
+}
+
+.vp-doc > p {
+  text-indent: 0;
+}
+
+.vp-doc blockquote {
+  border-left-color: #0d9488 !important;
+  background: rgba(13, 148, 136, 0.06);
+  border-radius: 0 10px 10px 0;
+  padding: 0.65rem 1rem !important;
+}
+
+.vp-doc table {
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+  background: #fff;
+}
+
+.vp-doc tr:nth-child(2n) {
+  background-color: rgba(15, 23, 42, 0.02);
+}
+
+.vp-doc th {
+  background: rgba(15, 23, 42, 0.04);
+  font-weight: 650;
+}
+
+.vp-doc .blog-flow,
+.vp-doc .blog-flow-col {
+  margin: 1.25rem 0;
+}
+
+.VPDoc .content-container {
+  max-width: 820px;
 }
 
 /* Agent / 工作计划模块演示 iframe（旧 markdown 兜底） */

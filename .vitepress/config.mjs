@@ -46,16 +46,33 @@ export default defineConfig({
       },
       { text: '生活记录', link: '/pages/life' },
     ],
+    /*
+     * VitePress getSidebarGroups：没有 items 的项会被塞进「匿名分组」变成二级。
+     * 一级栏必须带 items（单页用 items: []），才能和「博客」同级同样式。
+     */
     sidebar: [
-      { text: '工作台（模块入口）', link: '/' },
-      { text: '博客', link: '/pages/blog/' },
-      { text: '关于我', link: '/pages/about' },
-      { text: '项目经验', link: '/pages/projects' },
-      { text: '技术栈', link: '/pages/tech' },
-      { text: '工具链', link: '/pages/tools' },
-      { text: '嵌入式基础', link: '/pages/interview' },
+      { text: '工作台（模块入口）', link: '/', items: [] },
+      {
+        text: '博客',
+        link: '/pages/blog/',
+        collapsed: false,
+        items: [
+          { text: '文章列表', link: '/pages/blog/' },
+          { text: 'GitLab 部署与配置指南', link: '/pages/blog/2026-10-14-内网GitLab-CE部署与配置指南' },
+          { text: 'GitLab 部署操作命令手册', link: '/pages/blog/2026-10-14-GitLab本地部署操作命令手册' },
+          { text: 'SVN → GitLab 迁移方案', link: '/pages/blog/2026-10-14-SVN到GitLab迁移方案' },
+          { text: 'Git 日常开发与培训手册', link: '/pages/blog/2026-10-14-Git日常开发与培训手册' },
+        ],
+      },
+      { text: '关于我', link: '/pages/about', items: [] },
+      { text: '项目经验', link: '/pages/projects', items: [] },
+      { text: '技术栈', link: '/pages/tech', items: [] },
+      { text: '工具链', link: '/pages/tools', items: [] },
+      { text: '嵌入式基础', link: '/pages/interview', items: [] },
       {
         text: '技能星图',
+        link: '/pages/skill',
+        collapsed: false,
         items: [
           { text: '技能雷达图', link: '/pages/skill' },
           /* 单层下拉，避免嵌套菜单在部分 CDN/缓存下不更新或交互异常 */
@@ -67,7 +84,7 @@ export default defineConfig({
           { text: '个人项目 · IVD Agent（本地）', link: 'http://127.0.0.1:8000/' },
         ],
       },
-      { text: '生活记录', link: '/pages/life' },
+      { text: '生活记录', link: '/pages/life', items: [] },
     ],
     socialLinks: [],
   },

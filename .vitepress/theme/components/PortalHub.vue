@@ -55,9 +55,9 @@ function onEnter(sys, e) {
   width: 100%;
   min-height: calc(100vh - var(--vp-nav-height, 64px) - 48px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: clamp(16px, 3.5vh, 32px) 24px 48px;
+  padding: clamp(20px, 4vh, 40px) 24px 56px;
   font-family: var(--mx-font);
   color: #f8fafc;
 }
@@ -123,6 +123,11 @@ function onEnter(sys, e) {
   position: relative;
   overflow: hidden;
   isolation: isolate;
+}
+
+.mx-portal__card.featured {
+  box-shadow: 0 14px 36px rgba(37, 99, 235, 0.28);
+  border-color: rgba(147, 197, 253, 0.35);
 }
 
 .mx-portal__card::before {

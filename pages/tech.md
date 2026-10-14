@@ -18,10 +18,12 @@
 - **ThreadX**：多任务、多线程协同
 - **UCOS III**：任务调度、信号量、消息队列
 
-## 4. 通信协议
+## 4. 通信协议与分层架构
 
 - **总线**：CAN、UART、FSMC 自定义协议
 - **协议栈**：MCU 多节点/多协议/多链路自定义通信协议栈
+- **仪器分层**：上位（人机）/ 中位（网关·编排·鉴权）/ 下位（实时执行·联锁）
+- **工程红线**：禁止 UI 直连业务库与设备口；写操作走命令白名单与审计
 - **了解**：CANopen、EtherCAT 协议栈原理
 
 ## 5. Bootloader
@@ -64,5 +66,14 @@
 
 ## 11. 版本与协作
 
-- Git / SVN 版本控制
+- Git / SVN 版本控制；SVN→Git 全历史迁仓（`git svn`、authors 映射）
+- 内网 GitLab CE（Omnibus）：Group/Project、分支保护、MR 流程、备份
 - Pingcode 项目管理工具
+- 技术写作：VitePress 博客与操作/培训手册
+
+## 12. 后端与内网 Agent
+
+- **Web**：Python · FastAPI · Uvicorn；静态 HTML/CSS/JS 同端口托管
+- **数据**：SQLite；本地文件与备份策略
+- **AI 应用**：TF-IDF RAG · OpenAI 兼容 LLM（可私有化 / mock）
+- **平台能力**：多角色权限、多账号/SSO、知识库分类、问答/故障/评审/报告 Agent
