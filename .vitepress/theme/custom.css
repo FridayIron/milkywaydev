@@ -374,10 +374,34 @@ html {
   padding: 0.65rem 1rem !important;
 }
 
+/* 表格：保持 table 布局拉满宽度（勿用 display:block，云端会出现右侧大片空白） */
 .vp-doc table {
-  border-radius: 10px;
-  border: 1px solid var(--vp-c-divider);
+  display: table !important;
+  width: 100% !important;
+  max-width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 1rem 0;
   background: #fff;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vp-doc thead,
+.vp-doc tbody,
+.vp-doc tr {
+  width: 100%;
+}
+
+.vp-doc th,
+.vp-doc td {
+  padding: 10px 14px !important;
+  border: 1px solid var(--vp-c-divider);
+  vertical-align: middle;
+  text-align: left;
+  word-break: break-word;
 }
 
 .vp-doc tr:nth-child(2n) {
@@ -387,6 +411,24 @@ html {
 .vp-doc th {
   background: rgba(15, 23, 42, 0.04);
   font-weight: 650;
+}
+
+/* 窄屏：外层横向滚动，不破坏桌面端表格排版 */
+@media (max-width: 768px) {
+  .vp-doc .table-scroll,
+  .vp-doc > table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .vp-doc > table thead,
+  .vp-doc > table tbody {
+    display: table;
+    width: 100%;
+    min-width: 520px;
+  }
 }
 
 .vp-doc .blog-flow,
@@ -495,12 +537,7 @@ html.vp-module-demo iframe.module-demo-embed__frame {
   -webkit-overflow-scrolling: touch;
 }
 
-.vp-doc table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+/* 表格样式见上文「表格：保持 table 布局」；此处不再覆盖为 display:block */
 
 .skill-chart-container {
   width: 100% !important;
