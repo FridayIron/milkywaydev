@@ -435,6 +435,16 @@ html {
 .vp-doc .blog-flow-col {
   margin: 1.25rem 0;
 }
+.vp-doc .blog-flow-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; justify-content: center; }
+.vp-doc .blog-flow-node {
+  min-width: 88px; padding: 0.6rem 0.75rem; text-align: center;
+  border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc;
+  font-size: 0.8rem; line-height: 1.35;
+}
+.vp-doc .blog-flow-node.accent { background: #ecfeff; border-color: #5eead4; font-weight: 600; }
+.vp-doc .blog-flow-node.warn { background: #fff7ed; border-color: #fdba74; }
+.vp-doc .blog-flow-arrow, .vp-doc .blog-flow-down { color: #64748b; font-size: 0.8rem; }
+.vp-doc .blog-flow-col { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
 
 .VPDoc .content-container {
   max-width: 820px;

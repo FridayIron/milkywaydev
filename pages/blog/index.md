@@ -4,6 +4,23 @@
 
 ## 文章列表
 
+### 嵌入式驱动
+
+- [嵌入式驱动面试手册（目录）](/pages/blog/2026-10-20-嵌入式驱动面试手册)
+- [CAN：标识符、拓扑、帧与位时序](/pages/blog/2026-10-20-CAN总线)
+- [I2C：开漏、时序与卡死恢复](/pages/blog/2026-10-20-I2C总线)
+- [SPI：四种模式与片选](/pages/blog/2026-10-20-SPI总线)
+- [UART：帧格式、波特率与 RS485](/pages/blog/2026-10-20-UART串口)
+- [网络：UDP、TCP 握手与 LwIP](/pages/blog/2026-10-20-嵌入式网络TCP与UDP)
+- [定时器：时钟倍频与输入捕获](/pages/blog/2026-10-20-定时器)
+- [PWM：占空比、互补与死区](/pages/blog/2026-10-20-PWM)
+- [内存、启动与链接](/pages/blog/2026-10-20-内存启动与链接)
+- [DMA](/pages/blog/2026-10-20-DMA)
+- [Cache 与 DMA 一致性](/pages/blog/2026-10-20-Cache与DMA一致性)
+- [中断与抢占](/pages/blog/2026-10-20-中断与抢占)
+
+### 版本管理
+
 - [内网 GitLab CE 部署与配置指南（精要）](/pages/blog/2026-10-14-内网GitLab-CE部署与配置指南)
 - [GitLab 本地部署操作命令手册（按步执行）](/pages/blog/2026-10-14-GitLab本地部署操作命令手册)
 - [SVN → GitLab 迁移方案（保留历史）](/pages/blog/2026-10-14-SVN到GitLab迁移方案)
