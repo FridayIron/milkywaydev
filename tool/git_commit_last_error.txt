@@ -1,0 +1,44 @@
+[npm run deploy]
+> embedded-blog@1.0.0 deploy
+> npm run build && node scripts/copy-to-docs.cjs
+
+
+> embedded-blog@1.0.0 build
+> vitepress build
+
+
+  [32m[1mvitepress[22m v1.6.4[39m
+
+build complete in 9.45s.
+- building client + server bundles...
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓[0m building client + server bundles...
+- rendering pages...
+[32m✓[0m rendering pages...
+node:fs:1221
+  return binding.rmSync(getValidatedPath(path), opts.maxRetries, opts.recursive, opts.retryDelay);
+                 ^
+
+Error: EPERM, Permission denied: \\?\I:\21.company\6.html\2.boke_personal\docs '\\?\I:\21.company\6.html\2.boke_personal\docs'
+    at Object.rmSync (node:fs:1221:18)
+    at Object.<anonymous> (I:\21.company\6.html\2.boke_personal\scripts\copy-to-docs.cjs:13:6)
+    at Module._compile (node:internal/modules/cjs/loader:1812:14)
+    at Object..js (node:internal/modules/cjs/loader:1943:10)
+    at Module.load (node:internal/modules/cjs/loader:1533:32)
+    at Module._load (node:internal/modules/cjs/loader:1335:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+    at node:internal/main/run_main_module:33:47 {
+  errno: 1,
+  code: 'EPERM',
+  path: '\\\\?\\I:\\21.company\\6.html\\2.boke_personal\\docs',
+  syscall: 'rm'
+}
+
+Node.js v24.14.0
+
+[npm run deploy] 退出码 1

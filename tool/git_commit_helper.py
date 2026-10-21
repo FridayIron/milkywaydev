@@ -51,6 +51,22 @@ def git(*args: str, timeout: int = 120) -> tuple[int, str]:
     return run_cmd(["git", *args], timeout=timeout)
 
 
+def write_error_log(text: str) -> None:
+    path = os.path.join(TOOL_DIR, "git_commit_last_error.txt")
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(text)
+    except OSError:
+        pass
+
+
+def dialog_text(text: str, limit: int = 1200) -> str:
+    text = (text or "").strip() or "没有更多输出"
+    if len(text) <= limit:
+        return text
+    return text[:limit] + "\n\n……输出已截断，完整内容在窗口下方的变更区和 tool/git_commit_last_error.txt"
+
+
 class GitCommitApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -212,6 +228,13 @@ class GitCommitApp(tk.Tk):
         self.txt_status.configure(state="disabled")
         self.lbl_log.configure(text="状态已刷新")
 
+    def _show_output(self, text: str) -> None:
+        self.txt_status.configure(state="normal")
+        self.txt_status.delete("1.0", "end")
+        self.txt_status.insert("end", text or "（无输出）")
+        self.txt_status.configure(state="disabled")
+        self.lbl_log.configure(text="失败详情已写入窗口，并保存到 tool/git_commit_last_error.txt")
+
     def on_stage_only(self) -> None:
         if self._busy:
             return
@@ -270,16 +293,17 @@ class GitCommitApp(tk.Tk):
                 # Windows 下优先 npm.cmd
                 npm = "npm.cmd" if sys.platform == "win32" else "npm"
                 if not step("npm run deploy", [npm, "run", "deploy"], timeout=900):
-                    self.after(
-                        0,
-                        lambda: messagebox.showerror(
-                            "deploy 失败", "\n\n".join(logs[-2:]) or "npm run deploy 失败"
-                        ),
-                    )
+                    detail = "\n\n".join(logs[-2:]) or "npm run deploy 失败"
+                    write_error_log(detail)
+                    self.after(0, lambda: self._show_output(detail))
+                    self.after(0, lambda: messagebox.showerror("deploy 失败", dialog_text(detail)))
                     return
 
             if not step("git add -A", ["git", "add", "-A"]):
-                self.after(0, lambda: messagebox.showerror("失败", "\n\n".join(logs[-2:])))
+                detail = "\n\n".join(logs[-2:])
+                write_error_log(detail)
+                self.after(0, lambda: self._show_output(detail))
+                self.after(0, lambda: messagebox.showerror("暂存失败", dialog_text(detail)))
                 return
 
             code, st = git("status", "--porcelain")
@@ -292,30 +316,53 @@ class GitCommitApp(tk.Tk):
 
             # 用 -m 传消息，避免交互式编辑器
             if not step("git commit", ["git", "commit", "-m", msg]):
-                self.after(0, lambda: messagebox.showerror("提交失败", "\n\n".join(logs[-2:])))
+                detail = "\n\n".join(logs[-2:])
+                write_error_log(detail)
+                self.after(0, lambda: self._show_output(detail))
+                self.after(0, lambda: messagebox.showerror("提交失败", dialog_text(detail)))
                 return
 
             if do_push:
                 if not step("git push", ["git", "push"], timeout=180):
-                    self.after(
-                        0,
-                        lambda: messagebox.showerror(
-                            "推送失败",
-                            "提交可能已成功，但 push 失败：\n\n" + ("\n\n".join(logs[-2:])),
-                        ),
-                    )
+                    detail = "本地提交已经完成，但 push 失败：\n\n" + "\n\n".join(logs[-2:])
+                    write_error_log(detail)
+                    self.after(0, lambda: self._show_output(detail))
+                    self.after(0, lambda: messagebox.showerror("推送失败", dialog_text(detail)))
                     return
 
             summary = "提交成功" + ("，并已 push" if do_push else "（未 push）")
             if do_deploy:
                 summary += "\n已执行 npm run deploy"
             self.after(0, lambda: messagebox.showinfo("完成", summary))
+        except Exception as exc:
+            detail = "\n\n".join(logs) + f"\n\n[异常]\n{exc}"
+            write_error_log(detail)
+            self.after(0, lambda: self._show_output(detail))
+            self.after(0, lambda: messagebox.showerror("工具异常", dialog_text(detail)))
         finally:
             self.after(0, self.refresh_status)
             self.after(0, lambda: self.set_busy(False, "就绪"))
 
 
 def main() -> None:
+    try:
+        _main()
+    except Exception as exc:
+        import traceback
+
+        detail = traceback.format_exc()
+        write_error_log(detail)
+        try:
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showerror("启动失败", dialog_text(f"{exc}\n\n{detail}"))
+            root.destroy()
+        except Exception:
+            print(detail, file=sys.stderr)
+        raise SystemExit(1) from exc
+
+
+def _main() -> None:
     if not os.path.isdir(os.path.join(REPO_ROOT, ".git")):
         # 允许未检测到 .git 时仍打开，但给出提示
         root = tk.Tk()

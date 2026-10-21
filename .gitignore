@@ -1,4 +1,6 @@
 node_modules
+__pycache__/
+*.pyc
 visitor-api/node_modules
 dist
 .DS_Store

@@ -1,7 +1,7 @@
 <script setup>
 import DefaultTheme from 'vitepress/theme'
 import { useData, useRoute } from 'vitepress'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import CosmicBackground from './components/CosmicBackground.vue'
 import VisitorTracker from './components/VisitorTracker.vue'
 import PortalHub from './components/PortalHub.vue'
@@ -14,6 +14,37 @@ const isHome = computed(() => {
   return page.value?.frontmatter?.layout === 'home'
 })
 const VPLayout = DefaultTheme.Layout
+
+onMounted(() => {
+  const el = document.querySelector('.VPNavBar .content')
+  if (!el || el.dataset.hscroll === '1') return
+  el.dataset.hscroll = '1'
+  el.addEventListener('wheel', (event) => {
+    if (el.scrollWidth <= el.clientWidth + 1) return
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+    if (!delta) return
+    el.scrollLeft += delta
+    event.preventDefault()
+  }, { passive: false })
+  let dragging = false
+  let startX = 0
+  let startLeft = 0
+  el.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || event.target.closest('a, button')) return
+    dragging = true
+    startX = event.clientX
+    startLeft = el.scrollLeft
+    el.classList.add('is-dragging')
+  })
+  window.addEventListener('pointermove', (event) => {
+    if (!dragging) return
+    el.scrollLeft = startLeft - (event.clientX - startX)
+  })
+  window.addEventListener('pointerup', () => {
+    dragging = false
+    el.classList.remove('is-dragging')
+  })
+})
 </script>
 
 <template>

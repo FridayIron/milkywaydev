@@ -337,9 +337,64 @@ html {
   background-color: rgba(37, 99, 235, 0.08);
 }
 
-.VPSidebar .VPSidebarItem.level-1 > .item > .link > .text {
+.VPSidebar .VPSidebarItem.level-1 > .item > .link > .text,
+.VPSidebar .VPSidebarItem.level-1 > .item > .text {
   font-size: 13.5px;
   font-weight: 500;
+}
+
+/* 博客内的两个分组：版本管理在上，嵌入式驱动在下 */
+.VPSidebar .VPSidebarItem.level-1:has(> .items) > .item {
+  margin-top: 10px;
+  background: transparent !important;
+}
+.VPSidebar .VPSidebarItem.level-1:has(> .items) > .item .text {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  color: var(--vp-c-text-2) !important;
+}
+.VPSidebar .VPSidebarItem.level-1 > .items {
+  margin: 2px 0 8px 8px;
+  padding-left: 10px;
+  border-left: 1px solid rgba(15, 23, 42, 0.08);
+}
+.VPSidebar .VPSidebarItem.level-2 > .item > .link > .text {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.VPSidebar .VPSidebarItem.level-2 > .item {
+  border-radius: 6px;
+  padding: 1px 6px !important;
+}
+.VPSidebar .VPSidebarItem.level-2 > .item:hover,
+.VPSidebar .VPSidebarItem.level-2.is-active > .item {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+/* 顶栏：项多时横向滚动，滚轮和拖拽都映射成左右滑动 */
+.layout-page-light .VPNavBar .container {
+  min-width: 0;
+}
+.layout-page-light .VPNavBar .content {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+}
+.layout-page-light .VPNavBar .content.is-dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+.layout-page-light .VPNavBar .content-body {
+  width: max-content;
+  min-width: 100%;
+}
+.layout-page-light .VPNavBarMenu {
+  flex-wrap: nowrap !important;
 }
 
 /* 正文阅读区：更清晰的层级与表格 */
