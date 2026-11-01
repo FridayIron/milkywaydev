@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>步进驱动：插补 · 节拍进给 · 前瞻</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2332;
+    --line: #3d4f66;
+    --text: #e7ecf3;
+    --muted: #8b9bb4;
+    --accent: #3d9cf0;
+    --accent2: #f0a03d;
+    --good: #3ecf8e;
+    --bad: #e85d5d;
+    --grid: #243044;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  html.is-embed header {
+    padding: 0.75rem 1rem 0.4rem;
+  }
+  html.is-embed header h1 { font-size: 1.1rem; }
+  html.is-embed header p { font-size: 0.85rem; }
+  html.is-embed .wrap {
+    padding: 0.75rem 1rem 1rem;
+    gap: 0.75rem;
+  }
+  header {
+    padding: 1.25rem 1.5rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  header h1 { margin: 0 0 0.35rem; font-size: 1.35rem; font-weight: 600; }
+  header p { margin: 0; color: var(--muted); font-size: 0.92rem; max-width: 52rem; }
+  .wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem 1.5rem 1.5rem;
+  }
+  @media (max-width: 960px) {
+    .wrap { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .card-hd h2 { margin: 0; font-size: 1.05rem; font-weight: 600; }
+  .tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .tag-no { background: rgba(232,93,93,0.18); color: var(--bad); }
+  .tag-yes { background: rgba(62,207,142,0.18); color: var(--good); }
+  .card-bd { padding: 0.75rem 1rem 1rem; flex: 1; display: flex; flex-direction: column; gap: 0.65rem; }
+  canvas {
+    width: 100%;
+    height: auto;
+    background: #121a26;
+    border: 1px solid var(--grid);
+    border-radius: 8px;
+    display: block;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  button {
+    background: #243447;
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  button:hover { border-color: var(--accent); color: #fff; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .status {
+    font-size: 0.82rem;
+    color: var(--muted);
+    min-height: 1.35em;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .legend span::before {
+    content: "";
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    margin-right: 0.35rem;
+    vertical-align: -1px;
+  }
+  .lg-ideal::before { background: var(--accent); }
+  .lg-path::before { background: var(--accent2); }
+  .lg-pulse::before { background: var(--good); }
+  .lg-speed::before { background: #c084fc; }
+  .lg-feed::before { background: #3d9cf0; }
+  .lg-tick::before { background: #f0a03d; }
+  .lg-wrong::before { background: var(--bad); }
+  .wrap-full {
+    padding: 0 1.5rem 1rem;
+  }
+  .wrap-full .card { width: 100%; }
+  .dual-canvas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  @media (max-width: 960px) {
+    .dual-canvas { grid-template-columns: 1fr; }
+  }
+  .panel-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+  .panel-label.ok { color: var(--good); }
+  .panel-label.ng { color: var(--bad); }
+  .highlight-card {
+    border-color: rgba(61, 156, 240, 0.55);
+    box-shadow: 0 0 0 1px rgba(61, 156, 240, 0.15);
+  }
+  footer {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer code {
+    background: #1a2332;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+  }
+  .note {
+    margin-top: 0.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>步进驱动动态对照：插补 · 速度 · 节拍进给 · 前瞻</h1>
+  <p>
+    上排：Bresenham 路径分配 / 现网单轴 Acc/Const/Dec。
+    中部：节拍 ΔN 如何拼成<strong>一条</strong>进给曲线。
+    下部：<strong>前瞻 Look-ahead</strong>（多段拐角是否回零）——概念演示，现网业务用不上。
+  </p>
+</header>
+
+<div class="wrap">
+  <!-- 左：路径插补 -->
+  <section class="card">
+    <div class="card-hd">
+      <h2>路径插补 · Bresenham 直线</h2>
+      <span class="tag tag-no">现网 MCU 直驱：无</span>
+    </div>
+    <div class="card-bd">
+      <canvas id="cInterp" width="560" height="360"></canvas>
+      <div class="controls">
+        <button class="primary" id="btnInterpPlay">播放</button>
+        <button id="btnInterpStep">单步</button>
+        <button id="btnInterpReset">复位</button>
+        <label style="font-size:0.82rem;color:var(--muted)">
+          速度
+          <input id="interpSpeed" type="range" min="1" max="20" value="8" />
+        </label>
+      </div>
+      <div class="status" id="interpStatus">待命：目标 (0,0)→(24,15)，观察 X 每步必动、Y 按误差项跟进。</div>
+      <div class="legend">
+        <span class="lg-ideal">理想直线</span>
+        <span class="lg-path">已走栅格路径</span>
+        <span class="lg-pulse">本步脉冲 (ΔX/ΔY)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右：速度规划 -->
+  <section class="card">
+    <div class="card-hd">
+      <h2>单轴速度规划 · Acc / Const / Dec</h2>
+      <span class="tag tag-yes">现网 MCU 直驱：有</span>
+    </div>
+    <div class="card-bd">
+      <canvas id="cSpeed" width="560" height="360"></canvas>
+      <div class="controls">
+        <button class="primary" id="btnSpeedPlay">播放</button>
+        <button id="btnSpeedStep">单步</button>
+        <button id="btnSpeedReset">复位</button>
+        <label style="font-size:0.82rem;color:var(--muted)">
+          速度
+          <input id="speedSpeed" type="range" min="1" max="20" value="10" />
+        </label>
+      </div>
+      <div class="status" id="speedStatus">待命：总步数 80，观察脉冲频率随相位变化（对应 TIM ARR 刷新）。</div>
+      <div class="legend">
+        <span class="lg-speed">速度曲线 (pps)</span>
+        <span class="lg-pulse">已发脉冲</span>
+        <span class="lg-path">当前相位</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 关键：节拍连续进给 -->
+<div class="wrap-full">
+  <section class="card highlight-card">
+    <div class="card-hd">
+      <h2>关键 · 节拍 ΔN 连续成一条进给曲线（≠ N 条短 Move）</h2>
+      <span class="tag tag-yes">一条命令 · 一条 F(t) · 多拍不断流</span>
+    </div>
+    <div class="card-bd">
+      <div class="dual-canvas">
+        <div>
+          <div class="panel-label ok">✓ 正确：整段一条 Acc→Const→Dec，每拍只取当前 F 拆成 ΔNx/ΔNz</div>
+          <canvas id="cFeedOk" width="560" height="400"></canvas>
+        </div>
+        <div>
+          <div class="panel-label ng">✗ 误解：把每拍当成一条短 Move，拍拍从 0 加速再刹停</div>
+          <canvas id="cFeedNg" width="560" height="400"></canvas>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="primary" id="btnFeedPlay">同步播放</button>
+        <button id="btnFeedStep">同步单步（+1 拍）</button>
+        <button id="btnFeedReset">复位</button>
+        <label style="font-size:0.82rem;color:var(--muted)">
+          速度
+          <input id="feedSpeed" type="range" min="1" max="20" value="8" />
+        </label>
+      </div>
+      <div class="status" id="feedStatus">待命：总 40 拍，观察左侧速度可上到巡航；右侧每拍都掉回 0，平均速度被拖死。</div>
+      <div class="legend">
+        <span class="lg-feed">进给 F(t) / 瞬时 pps</span>
+        <span class="lg-tick">本拍 ΔN（柱高=本拍步数）</span>
+        <span class="lg-pulse">累计已发脉冲</span>
+        <span class="lg-wrong">错误：拍间回零</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 前瞻 Look-ahead -->
+<div class="wrap-full">
+  <section class="card" style="border-color: rgba(240,160,61,0.45);">
+    <div class="card-hd">
+      <h2>前瞻 Look-ahead · 多段折线拐角速度（概念）</h2>
+      <span class="tag tag-no">现网业务：用不上</span>
+    </div>
+    <div class="card-bd">
+      <p style="margin:0;font-size:0.85rem;color:var(--muted);">
+        路径 <code>A→B→C→D</code> 三段折线。无前瞻：每个拐点刹到 0；有前瞻：提前看后段，按转角限速
+        <code>V_corner</code> 后连续通过（锐角仍慢、钝角可快）。现网是单段 Move/盘 goto，段末本就要停稳，故不需要。
+      </p>
+      <div class="dual-canvas">
+        <div>
+          <div class="panel-label ng">✗ 无前瞻：段段 Acc→Dec→0，拐角全停</div>
+          <canvas id="cLookNo" width="560" height="420"></canvas>
+        </div>
+        <div>
+          <div class="panel-label ok">✓ 有前瞻：拐角限速衔接，整条轮廓一条 F(s)</div>
+          <canvas id="cLookYes" width="560" height="420"></canvas>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="primary" id="btnLookPlay">同步播放</button>
+        <button id="btnLookStep">同步单步</button>
+        <button id="btnLookReset">复位</button>
+        <label style="font-size:0.82rem;color:var(--muted)">
+          速度
+          <input id="lookSpeed" type="range" min="1" max="20" value="10" />
+        </label>
+      </div>
+      <div class="status" id="lookStatus">待命：观察左图每个拐角速度掉到 0；右图拐角仍保持 V_corner &gt; 0。</div>
+      <div class="legend">
+        <span class="lg-path">折线路径</span>
+        <span class="lg-feed">进给速度 F</span>
+        <span class="lg-tick">拐角 / 段界</span>
+        <span class="lg-wrong">刹停到 0</span>
+        <span class="lg-pulse">带速过弯</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="note">
+    <strong>读图要点：</strong>
+    上排左＝路径比例；上排右＝现网单轴速度表；中部＝单段内节拍不断流；
+    <strong>下部前瞻</strong>＝多段之间要不要在拐点回零（现网用不上，见说明文档 §9）。
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* ========== Bresenham 插补演示 ========== */
+  const Dx = 24, Dy = 15;
+  const interp = {
+    canvas: document.getElementById("cInterp"),
+    status: document.getElementById("interpStatus"),
+    playing: false,
+    timer: null,
+    x: 0, y: 0,
+    err: 2 * Dy - Dx,
+    path: [{ x: 0, y: 0 }],
+    done: false
+  };
+
+  function resetInterp() {
+    stopInterp();
+    interp.x = 0; interp.y = 0;
+    interp.err = 2 * Dy - Dx;
+    interp.path = [{ x: 0, y: 0 }];
+    interp.done = false;
+    interp.status.textContent = "复位：e = 2·Dy − Dx = " + interp.err + "。点击播放或单步。";
+    drawInterp(null);
+  }
+
+  function stepInterp() {
+    if (interp.done) return false;
+    const prev = { x: interp.x, y: interp.y };
+    let dyStep = 0;
+    interp.x += 1;
+    if (interp.err >= 0) {
+      interp.y += 1;
+      dyStep = 1;
+      interp.err -= 2 * Dx;
+    }
+    interp.err += 2 * Dy;
+    interp.path.push({ x: interp.x, y: interp.y });
+    const pulse = { dx: 1, dy: dyStep, from: prev, to: { x: interp.x, y: interp.y } };
+    if (interp.x >= Dx) {
+      interp.done = true;
+      interp.status.textContent = "完成：共 " + Dx + " 步，终点 (" + interp.x + "," + interp.y + ")。路径贴近理想直线。";
+      stopInterp();
+    } else {
+      interp.status.textContent =
+        "步骤 " + interp.x + "/" + Dx +
+        " · 发脉冲 ΔX=1, ΔY=" + dyStep +
+        " · 误差 e=" + interp.err +
+        " · 位置 (" + interp.x + "," + interp.y + ")";
+    }
+    drawInterp(pulse);
+    return !interp.done;
+  }
+
+  function drawInterp(pulse) {
+    const c = interp.canvas;
+    const ctx = c.getContext("2d");
+    const W = c.width, H = c.height;
+    const pad = 48;
+    const gw = W - pad * 2, gh = H - pad * 2;
+    const sx = (x) => pad + (x / Dx) * gw;
+    const sy = (y) => H - pad - (y / Dy) * gh;
+
+    ctx.clearRect(0, 0, W, H);
+    // grid
+    ctx.strokeStyle = "#243044";
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= Dx; i++) {
+      ctx.beginPath();
+      ctx.moveTo(sx(i), sy(0));
+      ctx.lineTo(sx(i), sy(Dy));
+      ctx.stroke();
+    }
+    for (let j = 0; j <= Dy; j++) {
+      ctx.beginPath();
+      ctx.moveTo(sx(0), sy(j));
+      ctx.lineTo(sx(Dx), sy(j));
+      ctx.stroke();
+    }
+    // ideal line
+    ctx.strokeStyle = "#3d9cf0";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(sx(0), sy(0));
+    ctx.lineTo(sx(Dx), sy(Dy));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // path
+    ctx.strokeStyle = "#f0a03d";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    interp.path.forEach((p, i) => {
+      if (i === 0) ctx.moveTo(sx(p.x), sy(p.y));
+      else ctx.lineTo(sx(p.x), sy(p.y));
+    });
+    ctx.stroke();
+
+    // dots
+    interp.path.forEach((p) => {
+      ctx.fillStyle = "#f0a03d";
+      ctx.beginPath();
+      ctx.arc(sx(p.x), sy(p.y), 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // current pulse arrows
+    if (pulse) {
+      ctx.strokeStyle = "#3ecf8e";
+      ctx.fillStyle = "#3ecf8e";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sx(pulse.from.x), sy(pulse.from.y));
+      ctx.lineTo(sx(pulse.to.x), sy(pulse.to.y));
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(sx(pulse.to.x), sy(pulse.to.y), 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // axes labels
+    ctx.fillStyle = "#8b9bb4";
+    ctx.font = "12px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("X (步)", W - 40, H - 16);
+    ctx.fillText("Y", 12, 24);
+    ctx.fillText("(0,0)", pad - 8, H - pad + 16);
+    ctx.fillText("(" + Dx + "," + Dy + ")", sx(Dx) - 36, sy(Dy) - 10);
+  }
+
+  function stopInterp() {
+    interp.playing = false;
+    if (interp.timer) { clearInterval(interp.timer); interp.timer = null; }
+    document.getElementById("btnInterpPlay").textContent = "播放";
+  }
+
+  function playInterp() {
+    if (interp.done) resetInterp();
+    if (interp.playing) { stopInterp(); return; }
+    interp.playing = true;
+    document.getElementById("btnInterpPlay").textContent = "暂停";
+    const tick = () => {
+      const cont = stepInterp();
+      if (!cont) stopInterp();
+    };
+    tick();
+    interp.timer = setInterval(tick, Math.max(40, 420 - Number(document.getElementById("interpSpeed").value) * 18));
+  }
+
+  document.getElementById("btnInterpPlay").onclick = playInterp;
+  document.getElementById("btnInterpStep").onclick = () => { stopInterp(); stepInterp(); };
+  document.getElementById("btnInterpReset").onclick = resetInterp;
+  document.getElementById("interpSpeed").oninput = () => {
+    if (interp.playing) { stopInterp(); playInterp(); }
+  };
+
+  /* ========== 单轴速度规划演示 ========== */
+  const TOTAL = 80;
+  const ACC = 18, DEC = 18;
+  const CONST = TOTAL - ACC - DEC;
+  const VMAX = 1000; // 示意 pps
+
+  const speed = {
+    canvas: document.getElementById("cSpeed"),
+    status: document.getElementById("speedStatus"),
+    playing: false,
+    timer: null,
+    step: 0,
+    done: false
+  };
+
+  function phaseOf(n) {
+    if (n <= 0) return { name: "IDLE", v: 0 };
+    if (n <= ACC) {
+      const v = Math.round((VMAX * n) / ACC);
+      return { name: "ACC", v: Math.max(v, Math.round(VMAX / ACC)) };
+    }
+    if (n <= ACC + CONST) return { name: "CONST", v: VMAX };
+    if (n <= TOTAL) {
+      const remain = TOTAL - n;
+      const v = Math.round((VMAX * (remain + 1)) / DEC);
+      return { name: "DEC", v: Math.max(v, Math.round(VMAX / DEC)) };
+    }
+    return { name: "STOPPED", v: 0 };
+  }
+
+  function resetSpeed() {
+    stopSpeed();
+    speed.step = 0;
+    speed.done = false;
+    speed.status.textContent = "复位：总步数 " + TOTAL + " = Acc " + ACC + " + Const " + CONST + " + Dec " + DEC + "。";
+    drawSpeed();
+  }
+
+  function stepSpeed() {
+    if (speed.done) return false;
+    speed.step += 1;
+    const ph = phaseOf(speed.step);
+    if (speed.step >= TOTAL) {
+      speed.done = true;
+      speed.status.textContent = "完成：已发 " + TOTAL + " 脉冲，相位 STOPPED。对应现网单轴运动结束。";
+      stopSpeed();
+    } else {
+      const arrUs = ph.v > 0 ? Math.round(1e6 / ph.v) : 0;
+      speed.status.textContent =
+        "步 " + speed.step + "/" + TOTAL +
+        " · 相位 " + ph.name +
+        " · 约 " + ph.v + " pps" +
+        " · TIM 周期≈ " + arrUs + " μs（示意）";
+    }
+    drawSpeed();
+    return !speed.done;
+  }
+
+  function drawSpeed() {
+    const c = speed.canvas;
+    const ctx = c.getContext("2d");
+    const W = c.width, H = c.height;
+    const padL = 48, padR = 24, padT = 28, padB = 48;
+    const gw = W - padL - padR, gh = H - padT - padB;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // axes
+    ctx.strokeStyle = "#3d4f66";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, H - padB);
+    ctx.lineTo(W - padR, H - padB);
+    ctx.stroke();
+
+    const xOf = (n) => padL + (n / TOTAL) * gw;
+    const yOf = (v) => H - padB - (v / VMAX) * gh;
+
+    // phase bands
+    const bands = [
+      { from: 0, to: ACC, color: "rgba(240,160,61,0.12)", label: "ACC" },
+      { from: ACC, to: ACC + CONST, color: "rgba(62,207,142,0.10)", label: "CONST" },
+      { from: ACC + CONST, to: TOTAL, color: "rgba(192,132,252,0.12)", label: "DEC" }
+    ];
+    bands.forEach((b) => {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(xOf(b.from), padT, xOf(b.to) - xOf(b.from), gh);
+      ctx.fillStyle = "#8b9bb4";
+      ctx.font = "11px Segoe UI, Microsoft YaHei, sans-serif";
+      ctx.fillText(b.label, xOf(b.from) + 6, padT + 14);
+    });
+
+    // ideal speed polyline
+    ctx.strokeStyle = "#c084fc";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (let n = 0; n <= TOTAL; n++) {
+      const v = phaseOf(n).v;
+      const x = xOf(n), y = yOf(v);
+      if (n === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // progress fill under curve
+    if (speed.step > 0) {
+      ctx.fillStyle = "rgba(62,207,142,0.25)";
+      ctx.beginPath();
+      ctx.moveTo(xOf(0), yOf(0));
+      for (let n = 0; n <= speed.step; n++) {
+        ctx.lineTo(xOf(n), yOf(phaseOf(n).v));
+      }
+      ctx.lineTo(xOf(speed.step), yOf(0));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // current marker
+    const ph = phaseOf(speed.step);
+    ctx.fillStyle = "#3ecf8e";
+    ctx.beginPath();
+    ctx.arc(xOf(speed.step), yOf(ph.v), 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // motor position bar
+    const barY = H - 22;
+    ctx.fillStyle = "#243044";
+    ctx.fillRect(padL, barY - 8, gw, 10);
+    ctx.fillStyle = "#3ecf8e";
+    ctx.fillRect(padL, barY - 8, (speed.step / TOTAL) * gw, 10);
+    ctx.fillStyle = "#8b9bb4";
+    ctx.font = "12px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("轴位置（已发脉冲）", padL, barY - 14);
+    ctx.fillText("步数 n", W - 48, H - 8);
+    ctx.fillText("pps", 10, padT + 8);
+  }
+
+  function stopSpeed() {
+    speed.playing = false;
+    if (speed.timer) { clearInterval(speed.timer); speed.timer = null; }
+    document.getElementById("btnSpeedPlay").textContent = "播放";
+  }
+
+  function playSpeed() {
+    if (speed.done) resetSpeed();
+    if (speed.playing) { stopSpeed(); return; }
+    speed.playing = true;
+    document.getElementById("btnSpeedPlay").textContent = "暂停";
+    const tick = () => {
+      const cont = stepSpeed();
+      if (!cont) stopSpeed();
+    };
+    tick();
+    speed.timer = setInterval(tick, Math.max(25, 320 - Number(document.getElementById("speedSpeed").value) * 14));
+  }
+
+  document.getElementById("btnSpeedPlay").onclick = playSpeed;
+  document.getElementById("btnSpeedStep").onclick = () => { stopSpeed(); stepSpeed(); };
+  document.getElementById("btnSpeedReset").onclick = resetSpeed;
+  document.getElementById("speedSpeed").oninput = () => {
+    if (speed.playing) { stopSpeed(); playSpeed(); }
+  };
+
+  /* ========== 关键：节拍连续进给 vs N 条短 Move ========== */
+  const TICKS = 40;
+  const TICK_MS = 1; // 示意 1ms 插补周期
+  const F_MAX = 20;  // 每拍最大步数（→ 20000 pps @ 1ms）
+  const F_ACC = 8, F_DEC = 8;
+  const F_CONST = TICKS - F_ACC - F_DEC;
+
+  function feedAtTick(k) {
+    // k: 1..TICKS，返回本拍应发的合成步数 ΔN（进给）
+    if (k <= 0) return 0;
+    if (k <= F_ACC) return Math.max(1, Math.round((F_MAX * k) / F_ACC));
+    if (k <= F_ACC + F_CONST) return F_MAX;
+    if (k <= TICKS) {
+      const remain = TICKS - k + 1;
+      return Math.max(1, Math.round((F_MAX * remain) / F_DEC));
+    }
+    return 0;
+  }
+
+  // 错误模型：每拍内部微型 Acc-Const-Dec，拍末回 0（示意采样点）
+  function wrongFeedSample(k, sub) {
+    // sub 0..1 within tick; peak at middle then back to 0
+    const peak = Math.max(2, Math.round(F_MAX * 0.35)); // 永远上不去
+    if (sub < 0.35) return Math.round(peak * (sub / 0.35));
+    if (sub < 0.55) return peak;
+    return Math.round(peak * (1 - (sub - 0.55) / 0.45));
+  }
+
+  const feed = {
+    status: document.getElementById("feedStatus"),
+    cOk: document.getElementById("cFeedOk"),
+    cNg: document.getElementById("cFeedNg"),
+    tick: 0,
+    cumOk: 0,
+    cumNg: 0,
+    historyOk: [], // {dn, cum, f}
+    historyNg: [],
+    playing: false,
+    timer: null,
+    done: false
+  };
+
+  function phaseNameFeed(k) {
+    if (k <= 0) return "IDLE";
+    if (k <= F_ACC) return "ACC";
+    if (k <= F_ACC + F_CONST) return "CONST";
+    if (k <= TICKS) return "DEC";
+    return "STOP";
+  }
+
+  function resetFeed() {
+    stopFeed();
+    feed.tick = 0;
+    feed.cumOk = 0;
+    feed.cumNg = 0;
+    feed.historyOk = [];
+    feed.historyNg = [];
+    feed.done = false;
+    feed.status.textContent =
+      "复位：共 " + TICKS + " 拍 × " + TICK_MS + " ms。左侧一条 F(t)；右侧每拍独立加减速回零。";
+    drawFeedOk();
+    drawFeedNg();
+  }
+
+  function stepFeed() {
+    if (feed.done) return false;
+    feed.tick += 1;
+    const dn = feedAtTick(feed.tick);
+    feed.cumOk += dn;
+    feed.historyOk.push({ dn: dn, cum: feed.cumOk, f: dn / TICK_MS }); // 步/ms → 千 pps 量级示意
+
+    // 错误侧：本拍也「发出」相同步数，但速度曲线每拍回零；累计用峰值示意浪费
+    const dnNg = Math.max(2, Math.round(dn * 0.35)); // 有效进给被反复启停吃掉
+    feed.cumNg += dnNg;
+    feed.historyNg.push({ dn: dnNg, cum: feed.cumNg, peak: Math.max(2, Math.round(F_MAX * 0.35)) });
+
+    const pps = Math.round(dn / TICK_MS * 1000); // ΔN / 1ms → pps
+    if (feed.tick >= TICKS) {
+      feed.done = true;
+      feed.status.textContent =
+        "完成：左累计 " + feed.cumOk + " 步（可到约 " + (F_MAX * 1000) + " pps 巡航）；" +
+        "右累计仅 " + feed.cumNg + " 步且反复回零，同样时间内走不远。";
+      stopFeed();
+    } else {
+      feed.status.textContent =
+        "第 " + feed.tick + "/" + TICKS + " 拍 · 相位 " + phaseNameFeed(feed.tick) +
+        " · 本拍 ΔN=" + dn + "（约 " + pps + " pps）· 左累计 " + feed.cumOk +
+        " · 右累计 " + feed.cumNg + "（拍末速度回 0）";
+    }
+    drawFeedOk();
+    drawFeedNg();
+    return !feed.done;
+  }
+
+  function drawAxes(ctx, W, H, padL, padR, padT, padB) {
+    ctx.strokeStyle = "#3d4f66";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, H - padB);
+    ctx.lineTo(W - padR, H - padB);
+    ctx.stroke();
+  }
+
+  function drawFeedOk() {
+    const c = feed.cOk;
+    const ctx = c.getContext("2d");
+    const W = c.width, H = c.height;
+    const padL = 44, padR = 16, padT = 36, padB = 88;
+    const gw = W - padL - padR;
+    const ghTop = (H - padT - padB) * 0.55;
+    const ghBar = (H - padT - padB) * 0.28;
+    const y0Top = padT + ghTop;
+    const y0Bar = H - padB;
+
+    ctx.clearRect(0, 0, W, H);
+    drawAxes(ctx, W, H, padL, padR, padT, padB);
+
+    const xOf = (k) => padL + (k / TICKS) * gw;
+    const yF = (dn) => y0Top - (dn / F_MAX) * ghTop;
+
+    // phase bands
+    [
+      [0, F_ACC, "rgba(240,160,61,0.12)", "ACC"],
+      [F_ACC, F_ACC + F_CONST, "rgba(62,207,142,0.10)", "CONST"],
+      [F_ACC + F_CONST, TICKS, "rgba(192,132,252,0.12)", "DEC"]
+    ].forEach(function (b) {
+      ctx.fillStyle = b[2];
+      ctx.fillRect(xOf(b[0]), padT, xOf(b[1]) - xOf(b[0]), ghTop);
+      ctx.fillStyle = "#8b9bb4";
+      ctx.font = "11px Segoe UI, Microsoft YaHei, sans-serif";
+      ctx.fillText(b[3], xOf(b[0]) + 4, padT + 12);
+    });
+
+    // full F(t) outline
+    ctx.strokeStyle = "#3d9cf0";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let k = 0; k <= TICKS; k++) {
+      const y = yF(feedAtTick(k));
+      if (k === 0) ctx.moveTo(xOf(0), yF(0));
+      else ctx.lineTo(xOf(k), y);
+    }
+    ctx.stroke();
+
+    // progress fill + tick stems
+    if (feed.tick > 0) {
+      ctx.fillStyle = "rgba(61,156,240,0.22)";
+      ctx.beginPath();
+      ctx.moveTo(xOf(0), yF(0));
+      for (let k = 0; k <= feed.tick; k++) ctx.lineTo(xOf(k), yF(feedAtTick(k)));
+      ctx.lineTo(xOf(feed.tick), yF(0));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // ΔN bars at bottom
+    const maxCum = feed.historyOk.length ? feed.historyOk[feed.historyOk.length - 1].cum : 1;
+    feed.historyOk.forEach(function (h, i) {
+      const k = i + 1;
+      const bw = Math.max(2, gw / TICKS - 1);
+      const bh = (h.dn / F_MAX) * ghBar;
+      ctx.fillStyle = k === feed.tick ? "#f0a03d" : "rgba(240,160,61,0.55)";
+      ctx.fillRect(xOf(k) - bw / 2, y0Bar - bh, bw, bh);
+    });
+
+    // current marker on F
+    if (feed.tick > 0) {
+      const dn = feedAtTick(feed.tick);
+      ctx.fillStyle = "#3ecf8e";
+      ctx.beginPath();
+      ctx.arc(xOf(feed.tick), yF(dn), 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // cumulative bar
+    ctx.fillStyle = "#243044";
+    ctx.fillRect(padL, H - 28, gw, 10);
+    ctx.fillStyle = "#3ecf8e";
+    const totalOk = Array.from({ length: TICKS }, (_, i) => feedAtTick(i + 1)).reduce((a, b) => a + b, 0);
+    ctx.fillRect(padL, H - 28, gw * (feed.cumOk / totalOk), 10);
+
+    ctx.fillStyle = "#8b9bb4";
+    ctx.font = "11px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("进给 F：每拍步数 ΔN（不断流）", padL, padT - 8);
+    ctx.fillText("本拍 ΔN 柱", padL, y0Bar - ghBar - 6);
+    ctx.fillText("累计脉冲 " + feed.cumOk + " / " + totalOk, padL, H - 8);
+    ctx.fillText("拍", W - 28, H - padB + 14);
+    if (feed.tick > 0) {
+      const dn = feedAtTick(feed.tick);
+      ctx.fillStyle = "#e7ecf3";
+      ctx.fillText("ΔN=" + dn + " → ~" + (dn * 1000) + " pps", xOf(feed.tick) - 40, yF(dn) - 10);
+    }
+  }
+
+  function drawFeedNg() {
+    const c = feed.cNg;
+    const ctx = c.getContext("2d");
+    const W = c.width, H = c.height;
+    const padL = 44, padR = 16, padT = 36, padB = 88;
+    const gw = W - padL - padR;
+    const ghTop = (H - padT - padB) * 0.55;
+    const ghBar = (H - padT - padB) * 0.28;
+    const y0Top = padT + ghTop;
+    const y0Bar = H - padB;
+    const peak = Math.max(2, Math.round(F_MAX * 0.35));
+
+    ctx.clearRect(0, 0, W, H);
+    drawAxes(ctx, W, H, padL, padR, padT, padB);
+
+    const xOf = (k) => padL + (k / TICKS) * gw;
+    const yF = (v) => y0Top - (v / F_MAX) * ghTop;
+
+    // ghost of correct F for comparison
+    ctx.strokeStyle = "rgba(61,156,240,0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    for (let k = 0; k <= TICKS; k++) {
+      const y = yF(feedAtTick(k));
+      if (k === 0) ctx.moveTo(xOf(0), yF(0));
+      else ctx.lineTo(xOf(k), y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // wrong: sawtooth per tick
+    ctx.strokeStyle = "#e85d5d";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    let started = false;
+    for (let k = 0; k < TICKS; k++) {
+      const x0 = xOf(k);
+      const x1 = xOf(k + 1);
+      const samples = 8;
+      for (let s = 0; s <= samples; s++) {
+        const sub = s / samples;
+        const v = wrongFeedSample(k + 1, sub);
+        const x = x0 + (x1 - x0) * sub;
+        const y = yF(v);
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      }
+    }
+    ctx.stroke();
+
+    // highlight completed ticks fill
+    if (feed.tick > 0) {
+      for (let k = 0; k < feed.tick; k++) {
+        const x0 = xOf(k);
+        const x1 = xOf(k + 1);
+        ctx.fillStyle = "rgba(232,93,93,0.12)";
+        ctx.beginPath();
+        ctx.moveTo(x0, yF(0));
+        for (let s = 0; s <= 8; s++) {
+          const sub = s / 8;
+          ctx.lineTo(x0 + (x1 - x0) * sub, yF(wrongFeedSample(k + 1, sub)));
+        }
+        ctx.lineTo(x1, yF(0));
+        ctx.closePath();
+        ctx.fill();
+      }
+      // marker at end of current tick (back to 0!)
+      ctx.fillStyle = "#e85d5d";
+      ctx.beginPath();
+      ctx.arc(xOf(feed.tick), yF(0), 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // bars: short moves
+    feed.historyNg.forEach(function (h, i) {
+      const k = i + 1;
+      const bw = Math.max(2, gw / TICKS - 1);
+      const bh = (h.dn / F_MAX) * ghBar;
+      ctx.fillStyle = k === feed.tick ? "#e85d5d" : "rgba(232,93,93,0.5)";
+      ctx.fillRect(xOf(k) - bw / 2, y0Bar - bh, bw, bh);
+    });
+
+    const totalOk = Array.from({ length: TICKS }, (_, i) => feedAtTick(i + 1)).reduce((a, b) => a + b, 0);
+    ctx.fillStyle = "#243044";
+    ctx.fillRect(padL, H - 28, gw, 10);
+    ctx.fillStyle = "#e85d5d";
+    ctx.fillRect(padL, H - 28, gw * (feed.cumNg / totalOk), 10);
+
+    ctx.fillStyle = "#8b9bb4";
+    ctx.font = "11px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("误解：每拍一条短 Move（虚线=正确 F）", padL, padT - 8);
+    ctx.fillText("有效步少 · 峰值≈" + peak, padL, y0Bar - ghBar - 6);
+    ctx.fillText("累计脉冲 " + feed.cumNg + " / " + totalOk + "（同时间内）", padL, H - 8);
+    ctx.fillText("拍", W - 28, H - padB + 14);
+    if (feed.tick > 0) {
+      ctx.fillStyle = "#e7ecf3";
+      ctx.fillText("拍末速度 → 0", xOf(feed.tick) - 36, yF(0) - 12);
+    }
+  }
+
+  function stopFeed() {
+    feed.playing = false;
+    if (feed.timer) { clearInterval(feed.timer); feed.timer = null; }
+    document.getElementById("btnFeedPlay").textContent = "同步播放";
+  }
+
+  function playFeed() {
+    if (feed.done) resetFeed();
+    if (feed.playing) { stopFeed(); return; }
+    feed.playing = true;
+    document.getElementById("btnFeedPlay").textContent = "暂停";
+    const tick = () => {
+      const cont = stepFeed();
+      if (!cont) stopFeed();
+    };
+    tick();
+    feed.timer = setInterval(tick, Math.max(40, 420 - Number(document.getElementById("feedSpeed").value) * 18));
+  }
+
+  document.getElementById("btnFeedPlay").onclick = playFeed;
+  document.getElementById("btnFeedStep").onclick = () => { stopFeed(); stepFeed(); };
+  document.getElementById("btnFeedReset").onclick = resetFeed;
+  document.getElementById("feedSpeed").oninput = () => {
+    if (feed.playing) { stopFeed(); playFeed(); }
+  };
+
+  /* ========== 前瞻 Look-ahead 演示 ========== */
+  // 三段折线：水平→斜上→水平，拐角 B 较锐、C 较钝
+  const LOOK_PTS = [
+    { x: 40, y: 200 },
+    { x: 180, y: 200 },
+    { x: 280, y: 80 },
+    { x: 480, y: 80 }
+  ];
+  const LOOK_SEG_LEN = [0, 0, 0]; // filled below
+  (function initLookLens() {
+    for (let i = 0; i < 3; i++) {
+      const a = LOOK_PTS[i], b = LOOK_PTS[i + 1];
+      LOOK_SEG_LEN[i] = Math.hypot(b.x - a.x, b.y - a.y);
+    }
+  })();
+  const LOOK_TOTAL = LOOK_SEG_LEN.reduce((a, b) => a + b, 0);
+  const LOOK_STEPS = 90;
+  const LOOK_VMAX = 1;
+  // 无前瞻：每段末速度 0；有前瞻：拐角限速（B 锐→低，C 钝→高）
+  const V_CORNER_B = 0.28;
+  const V_CORNER_C = 0.72;
+
+  function posOnPath(s) {
+    // s in [0, LOOK_TOTAL]
+    let rem = Math.max(0, Math.min(s, LOOK_TOTAL));
+    for (let i = 0; i < 3; i++) {
+      if (rem <= LOOK_SEG_LEN[i] || i === 2) {
+        const t = LOOK_SEG_LEN[i] === 0 ? 0 : rem / LOOK_SEG_LEN[i];
+        const a = LOOK_PTS[i], b = LOOK_PTS[i + 1];
+        return {
+          x: a.x + (b.x - a.x) * Math.min(t, 1),
+          y: a.y + (b.y - a.y) * Math.min(t, 1),
+          seg: i
+        };
+      }
+      rem -= LOOK_SEG_LEN[i];
+    }
+    return { x: LOOK_PTS[3].x, y: LOOK_PTS[3].y, seg: 2 };
+  }
+
+  // 梯形速度：段内从 v0 加速到 vmax 再减到 v1
+  function trapProfile(u, v0, v1, vmax) {
+    // u in [0,1] along one segment; return speed
+    const accU = 0.22, decU = 0.22;
+    const mid = 1 - accU - decU;
+    if (u <= accU) {
+      const t = u / accU;
+      return v0 + (vmax - v0) * t;
+    }
+    if (u <= accU + mid) return vmax;
+    const t = (u - accU - mid) / decU;
+    return vmax + (v1 - vmax) * t;
+  }
+
+  function speedNoLook(s) {
+    let rem = s, seg = 0;
+    for (; seg < 3; seg++) {
+      if (rem <= LOOK_SEG_LEN[seg] || seg === 2) break;
+      rem -= LOOK_SEG_LEN[seg];
+    }
+    const u = LOOK_SEG_LEN[seg] === 0 ? 1 : rem / LOOK_SEG_LEN[seg];
+    return trapProfile(Math.min(u, 1), 0, 0, LOOK_VMAX); // 段首尾皆 0
+  }
+
+  function speedYesLook(s) {
+    let rem = s, seg = 0;
+    for (; seg < 3; seg++) {
+      if (rem <= LOOK_SEG_LEN[seg] || seg === 2) break;
+      rem -= LOOK_SEG_LEN[seg];
+    }
+    const u = LOOK_SEG_LEN[seg] === 0 ? 1 : rem / LOOK_SEG_LEN[seg];
+    const vEnter = seg === 0 ? 0 : (seg === 1 ? V_CORNER_B : V_CORNER_C);
+    const vExit = seg === 0 ? V_CORNER_B : (seg === 1 ? V_CORNER_C : 0);
+    // 段内峰值不超过 vmax，且不低于拐角限速的衔接
+    const peak = Math.max(vEnter, vExit, LOOK_VMAX * 0.92);
+    return trapProfile(Math.min(u, 1), vEnter, vExit, Math.min(LOOK_VMAX, peak));
+  }
+
+  const look = {
+    status: document.getElementById("lookStatus"),
+    cNo: document.getElementById("cLookNo"),
+    cYes: document.getElementById("cLookYes"),
+    step: 0,
+    playing: false,
+    timer: null,
+    done: false
+  };
+
+  function resetLook() {
+    stopLook();
+    look.step = 0;
+    look.done = false;
+    look.status.textContent =
+      "复位：A→B→C→D。左：拐角全停；右：B 限速 " + V_CORNER_B + "、C 限速 " + V_CORNER_C + "（相对 Vmax）。";
+    drawLook(look.cNo, false);
+    drawLook(look.cYes, true);
+  }
+
+  function stepLook() {
+    if (look.done) return false;
+    look.step += 1;
+    const s = (look.step / LOOK_STEPS) * LOOK_TOTAL;
+    const vNo = speedNoLook(s);
+    const vYes = speedYesLook(s);
+    const p = posOnPath(s);
+    if (look.step >= LOOK_STEPS) {
+      look.done = true;
+      look.status.textContent =
+        "完成：无前瞻在 B、C 两处速度归零；有前瞻在拐角保持 V_corner，总时间更短、更顺。现网单段到位不需要此层。";
+      stopLook();
+    } else {
+      const cornerHint =
+        Math.abs(s - LOOK_SEG_LEN[0]) < LOOK_TOTAL / LOOK_STEPS * 1.5 ? " · 接近拐角 B" :
+        Math.abs(s - LOOK_SEG_LEN[0] - LOOK_SEG_LEN[1]) < LOOK_TOTAL / LOOK_STEPS * 1.5 ? " · 接近拐角 C" : "";
+      look.status.textContent =
+        "进度 " + look.step + "/" + LOOK_STEPS +
+        " · 段 " + (p.seg + 1) + "/3" +
+        " · 无前瞻 F≈" + vNo.toFixed(2) +
+        " · 有前瞻 F≈" + vYes.toFixed(2) + cornerHint;
+    }
+    drawLook(look.cNo, false);
+    drawLook(look.cYes, true);
+    return !look.done;
+  }
+
+  function drawLook(canvas, withLook) {
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // --- path panel (top) ---
+    const pathH = 240;
+    ctx.fillStyle = "#8b9bb4";
+    ctx.font = "11px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("路径平面", 12, 18);
+
+    // path
+    ctx.strokeStyle = "#f0a03d";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    LOOK_PTS.forEach(function (p, i) {
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    });
+    ctx.stroke();
+
+    // corners
+    const labels = ["A", "B", "C", "D"];
+    LOOK_PTS.forEach(function (p, i) {
+      ctx.fillStyle = (i === 1 || i === 2) ? "#f0a03d" : "#8b9bb4";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#e7ecf3";
+      ctx.fillText(labels[i], p.x - 4, p.y - 10);
+    });
+
+    // traveled path highlight
+    const sNow = (look.step / LOOK_STEPS) * LOOK_TOTAL;
+    ctx.strokeStyle = withLook ? "#3ecf8e" : "#e85d5d";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    const nDraw = Math.max(1, look.step);
+    for (let i = 0; i <= nDraw; i++) {
+      const s = (i / LOOK_STEPS) * LOOK_TOTAL;
+      const p = posOnPath(s);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+
+    // tool point
+    const cur = posOnPath(sNow);
+    ctx.fillStyle = withLook ? "#3ecf8e" : "#e85d5d";
+    ctx.beginPath();
+    ctx.arc(cur.x, cur.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // speed badge near tool
+    const v = withLook ? speedYesLook(sNow) : speedNoLook(sNow);
+    ctx.fillStyle = "#e7ecf3";
+    ctx.font = "12px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("F=" + v.toFixed(2), cur.x + 10, cur.y - 8);
+    if (!withLook && v < 0.05 && look.step > 0 && look.step < LOOK_STEPS) {
+      // near corners often ~0
+      const nearB = Math.abs(sNow - LOOK_SEG_LEN[0]) < 8;
+      const nearC = Math.abs(sNow - LOOK_SEG_LEN[0] - LOOK_SEG_LEN[1]) < 8;
+      if (nearB || nearC) {
+        ctx.fillStyle = "#e85d5d";
+        ctx.fillText("刹停", cur.x + 10, cur.y + 12);
+      }
+    }
+    if (withLook) {
+      const nearB = Math.abs(sNow - LOOK_SEG_LEN[0]) < 10;
+      const nearC = Math.abs(sNow - LOOK_SEG_LEN[0] - LOOK_SEG_LEN[1]) < 10;
+      if (nearB) {
+        ctx.fillStyle = "#3ecf8e";
+        ctx.fillText("V_corner≈" + V_CORNER_B, cur.x + 10, cur.y + 12);
+      }
+      if (nearC) {
+        ctx.fillStyle = "#3ecf8e";
+        ctx.fillText("V_corner≈" + V_CORNER_C, cur.x + 10, cur.y + 12);
+      }
+    }
+
+    // --- speed profile (bottom) ---
+    const padL = 40, padR = 20, padT = pathH + 20, padB = 28;
+    const gw = W - padL - padR;
+    const gh = H - padT - padB;
+    const y0 = H - padB;
+
+    ctx.strokeStyle = "#3d4f66";
+    ctx.beginPath();
+    ctx.moveTo(padL, padT);
+    ctx.lineTo(padL, y0);
+    ctx.lineTo(W - padR, y0);
+    ctx.stroke();
+
+    const xOf = (s) => padL + (s / LOOK_TOTAL) * gw;
+    const yOf = (v) => y0 - (v / LOOK_VMAX) * gh;
+
+    // segment dividers
+    let acc = 0;
+    for (let i = 0; i < 2; i++) {
+      acc += LOOK_SEG_LEN[i];
+      ctx.strokeStyle = "rgba(240,160,61,0.5)";
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(xOf(acc), padT);
+      ctx.lineTo(xOf(acc), y0);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#8b9bb4";
+      ctx.font = "10px Segoe UI, Microsoft YaHei, sans-serif";
+      ctx.fillText(i === 0 ? "拐角B" : "拐角C", xOf(acc) - 16, padT + 12);
+    }
+
+    // full curve
+    const speedFn = withLook ? speedYesLook : speedNoLook;
+    ctx.strokeStyle = withLook ? "#3d9cf0" : "#e85d5d";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= LOOK_STEPS; i++) {
+      const s = (i / LOOK_STEPS) * LOOK_TOTAL;
+      const x = xOf(s), y = yOf(speedFn(s));
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // progress
+    if (look.step > 0) {
+      ctx.fillStyle = withLook ? "rgba(62,207,142,0.2)" : "rgba(232,93,93,0.18)";
+      ctx.beginPath();
+      ctx.moveTo(xOf(0), yOf(0));
+      for (let i = 0; i <= look.step; i++) {
+        const s = (i / LOOK_STEPS) * LOOK_TOTAL;
+        ctx.lineTo(xOf(s), yOf(speedFn(s)));
+      }
+      ctx.lineTo(xOf(sNow), yOf(0));
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = withLook ? "#3ecf8e" : "#e85d5d";
+      ctx.beginPath();
+      ctx.arc(xOf(sNow), yOf(speedFn(sNow)), 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // corner speed markers for look-ahead
+    if (withLook) {
+      ctx.fillStyle = "#3ecf8e";
+      ctx.beginPath();
+      ctx.arc(xOf(LOOK_SEG_LEN[0]), yOf(V_CORNER_B), 4, 0, Math.PI * 2);
+      ctx.arc(xOf(LOOK_SEG_LEN[0] + LOOK_SEG_LEN[1]), yOf(V_CORNER_C), 4, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = "#e85d5d";
+      ctx.beginPath();
+      ctx.arc(xOf(LOOK_SEG_LEN[0]), yOf(0), 4, 0, Math.PI * 2);
+      ctx.arc(xOf(LOOK_SEG_LEN[0] + LOOK_SEG_LEN[1]), yOf(0), 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = "#8b9bb4";
+    ctx.font = "11px Segoe UI, Microsoft YaHei, sans-serif";
+    ctx.fillText("进给 F（沿路径弧长）", padL, padT - 6);
+    ctx.fillText("s", W - 18, y0 + 14);
+  }
+
+  function stopLook() {
+    look.playing = false;
+    if (look.timer) { clearInterval(look.timer); look.timer = null; }
+    document.getElementById("btnLookPlay").textContent = "同步播放";
+  }
+
+  function playLook() {
+    if (look.done) resetLook();
+    if (look.playing) { stopLook(); return; }
+    look.playing = true;
+    document.getElementById("btnLookPlay").textContent = "暂停";
+    const tick = () => {
+      const cont = stepLook();
+      if (!cont) stopLook();
+    };
+    tick();
+    look.timer = setInterval(tick, Math.max(25, 300 - Number(document.getElementById("lookSpeed").value) * 12));
+  }
+
+  document.getElementById("btnLookPlay").onclick = playLook;
+  document.getElementById("btnLookStep").onclick = () => { stopLook(); stepLook(); };
+  document.getElementById("btnLookReset").onclick = resetLook;
+  document.getElementById("lookSpeed").oninput = () => {
+    if (look.playing) { stopLook(); playLook(); }
+  };
+
+  resetInterp();
+  resetSpeed();
+  resetFeed();
+  resetLook();
+})();
+</script>
+<script src="assets/embed.js?v=3"></script>
+</body>
+</html>

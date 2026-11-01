@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vitepress dev",
-    "build": "vitepress build",
+    "build": "vitepress build && node scripts/fix-lean.cjs",
     "preview": "vitepress preview",
     "deploy": "npm run build && node scripts/copy-to-docs.cjs",
     "new:blog": "node scripts/new-blog.cjs"

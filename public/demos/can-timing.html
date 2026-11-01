@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CAN 时序动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>CAN 时序</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-CAN总线.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>CAN 时序动画</h1>
+      <p class="lead">点击波形可暂停。0 = 显性，1 = 隐性。</p>
+    </div>
+    <section>
+      <h2>仲裁：0x100 胜出</h2>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "仲裁：0x100 胜出，0x180 在第 4 位退出（0=显性）",
+          "labels": ["0x100", "0x180"],
+          "waves": ["0000110000000000000000", "0000111100000000000000"],
+          "markers": [{"at": 0, "text": "ID10"}, {"at": 6, "text": "在这里分出胜负"}],
+          "stepMs": 240
+        }
+        </script>
+      </div>
+    </section>
+    <section>
+      <h2>显性与隐性</h2>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "显性(0) 与 隐性(1)",
+          "labels": ["逻辑位", "CANH", "CANL"],
+          "waves": [
+            "1100001111000011110000111100001111",
+            "0011110000111100001111000011110000",
+            "1100001111000011110000111100001111"
+          ],
+          "markers": [{"at": 0, "text": "隐性"}, {"at": 4, "text": "显性"}],
+          "stepMs": 220
+        }
+        </script>
+      </div>
+    </section>
+    <section>
+      <h2>错误帧</h2>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "错误主动：6 显性 + 8 隐性界定符",
+          "labels": ["逻辑位"],
+          "waves": ["11100000011111111"],
+          "markers": [{"at": 3, "text": "6 显性"}, {"at": 9, "text": "界定符"}],
+          "stepMs": 220
+        }
+        </script>
+      </div>
+    </section>
+  </main>
+  <script src="assets/common.js?v=3"></script>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

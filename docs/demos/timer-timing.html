@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>定时器时序动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>定时器</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-定时器.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>向上计数与更新事件</h1>
+      <p class="lead">每个周期末尾一个 UEV。点击波形暂停。</p>
+    </div>
+    <section>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "向上计数：每个周期末尾一个更新事件",
+          "labels": ["计数中", "更新UEV"],
+          "waves": ["11111110111111101111111011111110", "00000001000000010000000100000001"],
+          "markers": [{"at": 7, "text": "溢出"}, {"at": 15, "text": "溢出"}],
+          "stepMs": 200
+        }
+        </script>
+      </div>
+    </section>
+  </main>
+  <script src="assets/common.js?v=3"></script>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

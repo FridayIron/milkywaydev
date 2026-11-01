@@ -10,7 +10,14 @@ function onEnter(sys, e) {
     return
   }
   if (sys.external) {
+    e.preventDefault()
     window.open(sys.link, '_blank', 'noopener,noreferrer')
+    return
+  }
+  // /riyue/ 等反代路径必须整页跳转；VitePress router 会当成站内路由导致进不去登录页
+  if (sys.hardNav || String(sys.link || '').startsWith('/riyue')) {
+    e.preventDefault()
+    window.location.assign(sys.link)
     return
   }
   router.go(sys.link)
@@ -57,14 +64,18 @@ function onEnter(sys, e) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(20px, 4vh, 40px) 24px 56px;
+  /* 整体略上移，避免视觉落在正中偏下 */
+  padding: clamp(12px, 2.5vh, 28px) 24px clamp(72px, 12vh, 120px);
+  transform: translateY(calc(-1 * clamp(28px, 5vh, 56px)));
   font-family: var(--mx-font);
   color: #f8fafc;
+  position: relative;
+  z-index: 2;
 }
 
 .mx-portal__inner {
   width: 100%;
-  max-width: 1040px;
+  max-width: min(1120px, 100%);
   animation: mx-in 0.5s ease both;
 }
 
@@ -76,33 +87,34 @@ function onEnter(sys, e) {
   margin: 0;
   color: #5eead4;
   font-family: var(--mx-display);
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(26px, 3.6vw, 36px);
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.2;
 }
 
 .mx-portal__title {
-  margin: 14px 0 14px;
+  margin: 18px 0 16px;
   font-family: var(--mx-display);
-  font-size: clamp(30px, 4.2vw, 44px);
+  font-size: clamp(28px, 4vw, 42px);
   font-weight: 700;
   letter-spacing: -0.03em;
-  line-height: 1.22;
+  line-height: 1.25;
   color: #fff;
 }
 
 .mx-portal__sub {
   margin: 0;
-  color: rgba(226, 232, 240, 0.82);
-  line-height: 1.7;
-  font-size: clamp(15px, 1.5vw, 17px);
-  max-width: 36em;
+  color: rgba(226, 232, 240, 0.8);
+  line-height: 1.75;
+  font-size: clamp(15px, 1.45vw, 17px);
+  max-width: 28em;
 }
 
 .mx-portal__cards {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* 4 卡自适应：宽屏 2×2 / 更宽可 4 列，避免固定 3 列掉单卡 */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: 18px;
   margin-top: clamp(28px, 3.5vh, 40px);
 }
@@ -112,13 +124,13 @@ function onEnter(sys, e) {
   flex-direction: column;
   text-decoration: none;
   color: #fff;
-  border-radius: 18px;
-  padding: 26px 24px;
-  min-height: 236px;
+  border-radius: 16px;
+  padding: 22px 22px 20px;
+  min-height: 200px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(15, 23, 42, 0.35);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -126,7 +138,7 @@ function onEnter(sys, e) {
 }
 
 .mx-portal__card.featured {
-  box-shadow: 0 14px 36px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 12px 32px rgba(37, 99, 235, 0.26);
   border-color: rgba(147, 197, 253, 0.35);
 }
 
@@ -135,25 +147,25 @@ function onEnter(sys, e) {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.88;
+  opacity: 0.9;
 }
 
 .mx-portal__card.blog::before {
-  background: linear-gradient(160deg, rgba(15, 43, 79, 0.95), rgba(37, 99, 235, 0.75));
+  background: linear-gradient(160deg, rgba(15, 43, 79, 0.95), rgba(37, 99, 235, 0.72));
 }
 
-.mx-portal__card.agent::before {
-  background: linear-gradient(160deg, rgba(15, 47, 46, 0.95), rgba(15, 118, 110, 0.72));
+.mx-portal__card.riyue::before {
+  background: linear-gradient(160deg, rgba(12, 22, 48, 0.96), rgba(54, 147, 255, 0.55));
 }
 
 .mx-portal__card.work::before {
-  background: linear-gradient(160deg, rgba(41, 32, 22, 0.95), rgba(194, 65, 12, 0.7));
+  background: linear-gradient(160deg, rgba(41, 32, 22, 0.95), rgba(194, 65, 12, 0.68));
 }
 
 .mx-portal__card:hover {
-  transform: translateY(-3px);
-  border-color: rgba(255, 255, 255, 0.24);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
 }
 
 .mx-portal__card:focus-visible {
@@ -169,34 +181,35 @@ function onEnter(sys, e) {
 
 .mx-portal__tag {
   align-self: flex-start;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .mx-portal__card h2 {
-  margin: 16px 0 10px;
+  margin: 14px 0 10px;
   font-family: var(--mx-display);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
 }
 
 .mx-portal__card.featured h2 {
-  font-size: 26px;
+  font-size: 24px;
 }
 
 .mx-portal__card p {
   margin: 0;
   flex: 1;
-  color: rgba(255, 255, 255, 0.84);
-  font-size: 14px;
-  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13.5px;
+  line-height: 1.7;
 }
 
 .mx-portal__go {
-  margin-top: 20px;
+  margin-top: 22px;
   font-size: 14px;
   font-weight: 600;
   color: #fef3c7;
@@ -209,7 +222,7 @@ function onEnter(sys, e) {
 @keyframes mx-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -225,16 +238,24 @@ function onEnter(sys, e) {
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) and (min-width: 641px) {
+  .mx-portal__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
   .mx-portal {
     min-height: auto;
-    padding-top: 24px;
+    padding-top: 28px;
+    transform: none;
   }
   .mx-portal__cards {
     grid-template-columns: 1fr;
+    margin-top: 32px;
   }
   .mx-portal__card {
-    min-height: 180px;
+    min-height: 160px;
   }
 }
 </style>

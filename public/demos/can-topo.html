@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CAN 拓扑动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+  <style>
+    .topo-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 900px) { .topo-grid { grid-template-columns: 1.2fr 0.8fr; } }
+    .topo {
+      background: #0e1622;
+      border-radius: 10px;
+      padding: 8px 8px 4px;
+      overflow: hidden;
+    }
+    .topo svg { width: 100%; height: auto; display: block; }
+    .topo .cap { color: #9fb3c8; font-size: 13px; margin: 4px 8px 8px; }
+    .pulse { offset-rotate: 0deg; }
+    @media (prefers-reduced-motion: reduce) {
+      .topo svg animate, .topo svg animateMotion { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <strong>CAN 拓扑</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-CAN总线.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>CAN 干线拓扑动画</h1>
+      <p class="lead">左：正确干线。右：错误星型。绿点/红点为帧传播示意。</p>
+    </div>
+    <section id="topo">
+      <h2>硬件拓扑</h2>
+      <p>CAN 控制器在协议上是多主。应用层可以约定“一个主控发命令、多台从机回状态”，这只是谁在什么 ID 上说话，不改变接线。主控也是干线上的一个节点，不是星型的中心。</p>
+      <div class="topo-grid">
+        <div class="topo">
+          <svg viewBox="0 0 980 300" role="img" aria-label="CAN 干线拓扑动画">
+            <text x="16" y="28" fill="#d5e6f5" font-size="15">正确：主控在干线一端，从机沿设备往下排</text>
+            <line x1="70" y1="118" x2="900" y2="118" stroke="#3d8bfd" stroke-width="4"/>
+            <rect x="18" y="100" width="52" height="36" rx="4" fill="#16324a" stroke="#f0c36a"/>
+            <text x="44" y="123" fill="#f0c36a" font-size="12" text-anchor="middle">120Ω</text>
+            <rect x="900" y="100" width="52" height="36" rx="4" fill="#16324a" stroke="#f0c36a"/>
+            <text x="926" y="123" fill="#f0c36a" font-size="12" text-anchor="middle">120Ω</text>
+
+            <g fill="none" stroke="#7fdbff" stroke-width="2">
+              <path d="M150 118 V168"/>
+              <path d="M330 118 V168"/>
+              <path d="M510 118 V168"/>
+              <path d="M690 118 V168"/>
+              <path d="M860 118 V168"/>
+            </g>
+
+            <g font-size="13" text-anchor="middle">
+              <rect x="98" y="168" width="104" height="52" rx="8" fill="#1b3a28" stroke="#3ecf8e" stroke-width="2"/>
+              <text x="150" y="190" fill="#b7f0cf">主控</text>
+              <text x="150" y="208" fill="#8ee0b0">逻辑主机</text>
+              <rect x="278" y="168" width="104" height="52" rx="8" fill="#13283d" stroke="#7fdbff">
+                <animate attributeName="stroke" values="#7fdbff;#3ecf8e;#7fdbff" dur="3.2s" repeatCount="indefinite"/>
+              </rect>
+              <text x="330" y="190" fill="#d5e6f5">从机 泵</text>
+              <text x="330" y="208" fill="#9fb3c8">短支线</text>
+              <rect x="458" y="168" width="104" height="52" rx="8" fill="#13283d" stroke="#7fdbff">
+                <animate attributeName="stroke" values="#7fdbff;#7fdbff;#3ecf8e;#7fdbff" keyTimes="0;0.25;0.45;1" dur="3.2s" repeatCount="indefinite"/>
+              </rect>
+              <text x="510" y="190" fill="#d5e6f5">从机 阀</text>
+              <text x="510" y="208" fill="#9fb3c8">短支线</text>
+              <rect x="638" y="168" width="104" height="52" rx="8" fill="#13283d" stroke="#7fdbff">
+                <animate attributeName="stroke" values="#7fdbff;#7fdbff;#3ecf8e;#7fdbff" keyTimes="0;0.4;0.6;1" dur="3.2s" repeatCount="indefinite"/>
+              </rect>
+              <text x="690" y="190" fill="#d5e6f5">从机 温控</text>
+              <text x="690" y="208" fill="#9fb3c8">短支线</text>
+              <rect x="808" y="168" width="104" height="52" rx="8" fill="#13283d" stroke="#7fdbff">
+                <animate attributeName="stroke" values="#7fdbff;#7fdbff;#3ecf8e;#7fdbff" keyTimes="0;0.55;0.75;1" dur="3.2s" repeatCount="indefinite"/>
+              </rect>
+              <text x="860" y="190" fill="#d5e6f5">最远从机</text>
+              <text x="860" y="208" fill="#9fb3c8">终端在这端</text>
+            </g>
+
+            <circle r="6" cy="118" fill="#b6ffcf">
+              <animate attributeName="cx" values="150;150;860;860" keyTimes="0;0.12;0.72;1" dur="3.2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.12;0.72;0.82" dur="3.2s" repeatCount="indefinite"/>
+            </circle>
+            <text x="16" y="268" fill="#9fb3c8" font-size="13">绿点是主控发出的帧，沿干线传到最远端后被 120 Ω 吸收，不往回弹。从机边框变绿表示已经收到并可以拉 ACK。</text>
+          </svg>
+        </div>
+        <div class="topo">
+          <svg viewBox="0 0 640 300" role="img" aria-label="错误的星型接法">
+            <text x="16" y="28" fill="#f0c36a" font-size="15">不要：主控当星型中心，长分支散出去</text>
+            <g stroke="#a12622" stroke-width="3" fill="none">
+              <path d="M320 140 L120 70"/>
+              <path d="M320 140 L520 70"/>
+              <path d="M320 140 L90 210"/>
+              <path d="M320 140 L560 220"/>
+            </g>
+            <circle cx="320" cy="140" r="36" fill="#3a2418" stroke="#e6a23c" stroke-width="2"/>
+            <text x="320" y="136" fill="#f0c36a" font-size="13" text-anchor="middle">主控</text>
+            <text x="320" y="154" fill="#f0c36a" font-size="12" text-anchor="middle">中心</text>
+            <g fill="#2a1a1a" stroke="#f07178" font-size="12">
+              <rect x="70" y="40" width="100" height="36" rx="6"/>
+              <rect x="470" y="40" width="100" height="36" rx="6"/>
+              <rect x="40" y="196" width="100" height="36" rx="6"/>
+              <rect x="510" y="204" width="100" height="36" rx="6"/>
+            </g>
+            <g fill="#f0c36a" font-size="12" text-anchor="middle">
+              <text x="120" y="63">从机 + 120Ω?</text>
+              <text x="520" y="63">从机</text>
+              <text x="90" y="219">从机</text>
+              <text x="560" y="227">从机 + 120Ω?</text>
+            </g>
+            <circle r="5" fill="#ff8b8b">
+              <animate attributeName="cx" values="320;120;320;520;320" dur="2.6s" repeatCount="indefinite"/>
+              <animate attributeName="cy" values="140;70;140;70;140" dur="2.6s" repeatCount="indefinite"/>
+            </circle>
+            <circle r="5" fill="#ffb4b4">
+              <animate attributeName="cx" values="320;90;320;560;320" dur="2.6s" repeatCount="indefinite"/>
+              <animate attributeName="cy" values="140;210;140;220;140" dur="2.6s" repeatCount="indefinite"/>
+            </circle>
+            <text x="16" y="278" fill="#9fb3c8" font-size="13">分支点来回反射，终端电阻也不知道该放哪。速率一高就出现偶发 CRC 错误。</text>
+          </svg>
+        </div>
+      </div>
+      <h3>一主多从怎么布</h3>
+      <ul>
+        <li>CANH、CANL 全程是同一对差分线。所有节点，包括主控，都并联在这对线上，再加一根共地。隔离节点只在隔离的那一侧共地。</li>
+        <li>先定干线走向：从机柜到最远的一台设备。主控若在机柜里，就让它成为干线的起点，120 Ω 焊在主控板的总线连接器上。另一只 120 Ω 放在最远从机，或放在干线末端的终端插头上。</li>
+        <li>中间从机用短支线从干线就近分出。1 Mbit/s 时单根支线宜控制在 0.3 m 以内；500 kbit/s 时尽量不超过 1 m。设备离干线远，就把干线拐到设备旁边，不要拉长支线。</li>
+        <li>主控放在干线中间同样成立，只要左右两段仍然是一条干线、终端仍在两个物理末端。它不成立的情形，是从主控上分开多根长线、每根单独到一台从机。</li>
+        <li>中间节点、转接板、备用插座都不要再挂 120 Ω。线上只有两只终端，断电后 CANH–CANL 约 60 Ω。</li>
+      </ul>
+      <table>
+        <tr><th>波特率</th><th>干线经验长度</th><th>支线</th></tr>
+        <tr><td>1 Mbit/s</td><td>经验值约 25–40 m，不是标准里的硬性上限</td><td>通常 ≤ 0.3 m</td></tr>
+        <tr><td>500 kbit/s</td><td>约 100 m</td><td>尽量 ≤ 1 m</td></tr>
+        <tr><td>250 kbit/s</td><td>约 250 m</td><td>仍尽量短</td></tr>
+        <tr><td>125 kbit/s</td><td>约 500 m</td><td>仍尽量短</td></tr>
+      </table>
+      <p class="wave-cap">长度是传播延迟和采样点算出来的经验值，不是标准里的保证距离。实际距离还受线缆、节点数和终端质量影响。线更长时先把波特率降下来，而不是把采样点提前。</p>
+      <p>位填充从 SOF 到 CRC 序列：连续 5 个相同位就插入一个反相，接收端按同样规则去掉。作用是给重同步留边沿。节点频繁掉线而线束、终端都正常时，查该节点的 TEC/REC 是否已经进了 Bus-Off，不要只查插头。</p>
+    </section>
+  </main>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

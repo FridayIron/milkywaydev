@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SPI 时序动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>SPI 时序</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-SPI总线.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>SPI 模式 0 · 0xA5</h1>
+      <p class="lead">MSB first。采样在上升沿。点击波形暂停。</p>
+    </div>
+    <section>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "SPI 模式0 发送 0xA5（MSB first）",
+          "labels": ["CS", "SCLK", "MOSI"],
+          "waves": ["11000000000000000011", "00010101010101010100", "00110011001100001100"],
+          "markers": [{"at": 2, "text": "bit7=1"}, {"at": 16, "text": "bit0=1"}],
+          "stepMs": 240
+        }
+        </script>
+      </div>
+    </section>
+  </main>
+  <script src="assets/common.js?v=3"></script>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

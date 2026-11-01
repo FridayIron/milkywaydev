@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TCP 握手动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+  <style>
+    .hs { background:#0e1622; border-radius:12px; padding:16px; overflow:auto; }
+    .hs svg { width:100%; max-width:720px; display:block; margin:0 auto; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <strong>TCP 握手</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-嵌入式网络TCP与UDP.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>三次握手与四次挥手</h1>
+      <p class="lead">箭头按时间顺序闪动。SYN 消耗一个序号。</p>
+    </div>
+    <section>
+      <h2>三次握手</h2>
+      <div class="hs">
+        <svg viewBox="0 0 640 260" aria-label="TCP 三次握手">
+          <text x="80" y="28" fill="#9fb3c8" font-size="14">客户端</text>
+          <text x="500" y="28" fill="#9fb3c8" font-size="14">服务端</text>
+          <line x1="100" y1="40" x2="100" y2="230" stroke="#3d4f66" stroke-width="2"/>
+          <line x1="520" y1="40" x2="520" y2="230" stroke="#3d4f66" stroke-width="2"/>
+          <g stroke-width="3" fill="none">
+            <path d="M110 70 L510 90" stroke="#3ecf8e">
+              <animate attributeName="stroke-opacity" values="0.25;1;0.25" dur="3s" repeatCount="indefinite"/>
+            </path>
+            <path d="M510 120 L110 140" stroke="#3d9cf0">
+              <animate attributeName="stroke-opacity" values="0.25;0.25;1;0.25" keyTimes="0;0.33;0.66;1" dur="3s" repeatCount="indefinite"/>
+            </path>
+            <path d="M110 170 L510 190" stroke="#f0a03d">
+              <animate attributeName="stroke-opacity" values="0.25;0.25;0.25;1;0.25" keyTimes="0;0.5;0.66;0.9;1" dur="3s" repeatCount="indefinite"/>
+            </path>
+          </g>
+          <text x="250" y="68" fill="#b7f0cf" font-size="13">① SYN seq=x</text>
+          <text x="230" y="118" fill="#9ec9f5" font-size="13">② SYN+ACK seq=y ack=x+1</text>
+          <text x="250" y="168" fill="#f5d09a" font-size="13">③ ACK ack=y+1</text>
+          <text x="200" y="230" fill="#8b9bb4" font-size="12">之后双方 ESTABLISHED，可发应用数据</text>
+        </svg>
+      </div>
+    </section>
+    <section>
+      <h2>四次挥手</h2>
+      <div class="hs">
+        <svg viewBox="0 0 640 280" aria-label="TCP 四次挥手">
+          <text x="80" y="28" fill="#9fb3c8" font-size="14">主动关闭</text>
+          <text x="500" y="28" fill="#9fb3c8" font-size="14">被动关闭</text>
+          <line x1="100" y1="40" x2="100" y2="250" stroke="#3d4f66" stroke-width="2"/>
+          <line x1="520" y1="40" x2="520" y2="250" stroke="#3d4f66" stroke-width="2"/>
+          <g stroke-width="3" fill="none">
+            <path d="M110 70 L510 90" stroke="#e85d5d"/>
+            <path d="M510 110 L110 130" stroke="#3d9cf0"/>
+            <path d="M510 150 L110 170" stroke="#e85d5d"/>
+            <path d="M110 190 L510 210" stroke="#3d9cf0"/>
+          </g>
+          <text x="260" y="68" fill="#f0b0b0" font-size="13">① FIN</text>
+          <text x="260" y="108" fill="#9ec9f5" font-size="13">② ACK</text>
+          <text x="260" y="148" fill="#f0b0b0" font-size="13">③ FIN</text>
+          <text x="260" y="188" fill="#9ec9f5" font-size="13">④ ACK</text>
+          <text x="160" y="250" fill="#8b9bb4" font-size="12">主动方进入 TIME_WAIT（2MSL）；RST 直接拆连接不进 TIME_WAIT</text>
+        </svg>
+      </div>
+    </section>
+  </main>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

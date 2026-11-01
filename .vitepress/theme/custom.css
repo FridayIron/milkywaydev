@@ -252,13 +252,16 @@ html {
   overflow-x: clip;
 }
 
-/* 正文区防止横向溢出 */
+/* 正文区防止横向溢出（勿对 .vp-doc 设 overflow-x:clip，会连带变成纵向裁切导致正文消失） */
 .VPContent,
-.VPContent .container,
+.VPContent .container {
+  max-width: 100%;
+  box-sizing: border-box;
+}
 .VPDoc,
 .vp-doc {
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: visible;
   box-sizing: border-box;
 }
 
@@ -501,8 +504,100 @@ html {
 .vp-doc .blog-flow-arrow, .vp-doc .blog-flow-down { color: #64748b; font-size: 0.8rem; }
 .vp-doc .blog-flow-col { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
 
+/* 博客内嵌动态演示：高度由 embed postMessage 撑开，避免内部滚动条裁切 */
+.vp-doc .blog-demo-frame {
+  margin: 1.15rem 0 1.5rem;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 12px;
+  overflow: visible;
+  background: #f8fafc;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.vp-doc .blog-demo-frame iframe {
+  display: block;
+  width: 100%;
+  min-height: 280px;
+  height: 560px; /* 收到 embed 高度前的兜底，随后会被撑开 */
+  border: 0;
+  background: #fff;
+  border-radius: 12px;
+}
+.vp-doc .blog-demo-frame--tall iframe {
+  min-height: 480px;
+  height: 720px;
+}
+.vp-doc .blog-demo-frame__bar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.35rem 0.65rem 0;
+  font-size: 0.8rem;
+}
+.vp-doc .blog-demo-frame__bar a {
+  color: var(--vp-c-brand-1, #0ea5e9);
+}
+
+/* ===== 博客阅读页：加宽正文、收窄侧栏、拉开节奏 ===== */
+html.vp-page-light {
+  --vp-sidebar-width: 248px;
+  --vp-aside-width: 200px;
+}
+
 .VPDoc .content-container {
-  max-width: 820px;
+  max-width: 980px;
+}
+
+/* 博客文章：正文更透气，动态图占满可用宽度 */
+html.vp-page-light .VPDoc .content {
+  padding-top: 16px;
+}
+html.vp-page-light .vp-doc > h1 {
+  margin-top: 0.2rem;
+  margin-bottom: 0.85rem;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+}
+html.vp-page-light .vp-doc > blockquote {
+  margin: 0 0 1.25rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.03);
+}
+html.vp-page-light .vp-doc > p,
+html.vp-page-light .vp-doc > ul,
+html.vp-page-light .vp-doc > ol,
+html.vp-page-light .vp-doc > table {
+  margin-top: 0.95rem;
+  margin-bottom: 0.95rem;
+}
+html.vp-page-light .vp-doc > h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.85rem;
+  padding-top: 0.35rem;
+}
+html.vp-page-light .vp-doc .blog-demo-frame {
+  margin: 1.35rem 0 1.6rem;
+  width: 100%;
+}
+html.vp-page-light .vp-doc .blog-demo-frame iframe {
+  width: 100%;
+}
+
+/* 宽屏：给正文更多横向空间，右侧目录略收 */
+@media (min-width: 1440px) {
+  html.vp-page-light {
+    --vp-sidebar-width: 260px;
+  }
+  .VPDoc .content-container {
+    max-width: 1040px;
+  }
+}
+/* 侧栏项稍松一点，减少「目录墙」压迫感 */
+html.vp-page-light .VPSidebar .VPSidebarItem.level-2 > .item {
+  padding: 3px 8px !important;
+}
+html.vp-page-light .VPSidebar .VPSidebarItem.level-2 > .item > .link > .text {
+  line-height: 1.55;
 }
 
 /* Agent / 工作计划模块演示 iframe（旧 markdown 兜底） */

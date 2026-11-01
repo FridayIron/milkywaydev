@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>驱动时序与插补 · 动态演示</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>动态演示索引</strong>
+    <nav>
+      <a href="/pages/blog/">返回博客</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <div class="kicker">DEMOS</div>
+      <h1>时序动画与插补演示</h1>
+      <p class="lead">博客正文里放不下完整动画时，从这里打开。点击波形可暂停。</p>
+    </div>
+    <div class="cards">
+      <a class="card" href="interp-demo.html"><b>插补 · 速度 · 前瞻</b><span>Bresenham、单轴 Acc/Const/Dec、节拍进给、Look-ahead</span></a>
+      <a class="card" href="can-timing.html"><b>CAN 时序</b><span>仲裁、显性/隐性、错误帧</span></a>
+      <a class="card" href="can-topo.html"><b>CAN 拓扑</b><span>干线正确接法 vs 星型错误接法</span></a>
+      <a class="card" href="i2c-timing.html"><b>I2C 时序</b><span>Start + 0xA0 + ACK + Stop</span></a>
+      <a class="card" href="spi-timing.html"><b>SPI 时序</b><span>模式 0 发送 0xA5</span></a>
+      <a class="card" href="uart-timing.html"><b>UART 时序</b><span>8N1 发送 0x35，LSB first</span></a>
+      <a class="card" href="timer-timing.html"><b>定时器</b><span>向上计数与更新事件</span></a>
+      <a class="card" href="pwm-timing.html"><b>PWM</b><span>25% 与 75% 边沿对齐</span></a>
+      <a class="card" href="tcp-handshake.html"><b>TCP 握手</b><span>三次握手与四次挥手示意</span></a>
+    </div>
+  </main>
+</body>
+</html>

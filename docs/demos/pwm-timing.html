@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PWM 时序动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>PWM</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-PWM.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>边沿对齐 PWM</h1>
+      <p class="lead">约 25% 与 75%。点击波形暂停。</p>
+    </div>
+    <section>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "边沿对齐 PWM：25% 与 75%，周期 8 格",
+          "labels": ["PWM 25%", "PWM 75%"],
+          "waves": ["11000000110000001100000011000000", "11111100111111001111110011111100"],
+          "markers": [{"at": 0, "text": "周期起点"}, {"at": 8, "text": "下一周期"}],
+          "stepMs": 180
+        }
+        </script>
+      </div>
+    </section>
+  </main>
+  <script src="assets/common.js?v=3"></script>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

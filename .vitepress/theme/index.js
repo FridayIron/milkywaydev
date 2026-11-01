@@ -36,6 +36,65 @@ function suppressAnchorFlash() {
   }, 350)
 }
 
+const DEMO_EMBED_CSS = [
+  'html.is-embed body{background:#f8fafc!important}',
+  'html.is-embed .topbar{display:none!important}',
+  'html.is-embed .wrap{max-width:none!important;margin:0!important;padding:10px 12px 14px!important}',
+  'html.is-embed .hero{margin-bottom:10px!important;padding:12px 14px!important;box-shadow:none!important}',
+  'html.is-embed .hero h1{font-size:1.2rem!important;margin-bottom:4px!important}',
+  'html.is-embed .lead{font-size:.9rem!important}',
+  'html.is-embed section{margin:10px 0!important;padding:12px 14px 6px!important;box-shadow:none!important}',
+  'html.is-embed h2{font-size:1.05rem!important;margin:2px 0 8px!important}',
+  'html.is-embed header{padding:.75rem 1rem .4rem!important}',
+].join('')
+
+function polishDemoIframe(frame) {
+  try {
+    const doc = frame.contentDocument
+    if (!doc?.documentElement) return
+    doc.documentElement.classList.add('is-embed')
+    if (!doc.getElementById('demo-embed-style')) {
+      const style = doc.createElement('style')
+      style.id = 'demo-embed-style'
+      style.textContent = DEMO_EMBED_CSS
+      doc.head.appendChild(style)
+    }
+    const h = Math.max(doc.documentElement.scrollHeight || 0, doc.body?.scrollHeight || 0)
+    if (h > 120) frame.style.height = `${Math.ceil(h)}px`
+  } catch (_) { /* cross-origin */ }
+}
+
+/** 根据演示页 postMessage 把 iframe 撑到完整内容高度；并兜底注入内嵌样式 */
+function bindDemoEmbedResize() {
+  if (window.__demoEmbedBound) return
+  window.__demoEmbedBound = true
+  window.addEventListener('message', (event) => {
+    const data = event.data
+    if (!data || data.type !== 'demo-embed-size' || !data.height) return
+    const frames = document.querySelectorAll('.blog-demo-frame iframe')
+    frames.forEach((frame) => {
+      if (frame.contentWindow !== event.source) return
+      polishDemoIframe(frame)
+      const next = Math.ceil(Number(data.height))
+      if (!Number.isFinite(next) || next < 120) return
+      frame.style.height = `${next}px`
+    })
+  })
+  const watch = () => {
+    document.querySelectorAll('.blog-demo-frame iframe').forEach((frame) => {
+      if (frame.dataset.embedBound) return
+      frame.dataset.embedBound = '1'
+      const run = () => polishDemoIframe(frame)
+      frame.addEventListener('load', run)
+      if (frame.contentDocument?.readyState === 'complete') run()
+      ;[200, 600, 1200].forEach((ms) => setTimeout(run, ms))
+    })
+  }
+  watch()
+  const mo = new MutationObserver(watch)
+  mo.observe(document.documentElement, { childList: true, subtree: true })
+}
+
 export default {
   extends: DefaultTheme,
   Layout,
@@ -48,6 +107,14 @@ export default {
       const prevBefore = router.onBeforeRouteChange
       const prevAfter = router.onAfterRouteChange
       router.onBeforeRouteChange = async (to) => {
+        // /demos 静态页不能走 SPA，否则会落在空壳页面
+        try {
+          const path = decodeURIComponent(new URL(to, window.location.origin).pathname)
+          if (path === '/demos' || path.startsWith('/demos/')) {
+            window.location.assign(to)
+            return false
+          }
+        } catch (_) { /* ignore */ }
         suppressAnchorFlash()
         return prevBefore?.(to)
       }
@@ -57,6 +124,7 @@ export default {
         prevAfter?.(to)
       }
       applyPageTheme(window.location.pathname)
+      bindDemoEmbedResize()
       startPriorityPrefetch()
     }
   }

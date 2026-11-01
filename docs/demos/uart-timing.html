@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UART 时序动画</title>
+  <link rel="stylesheet" href="assets/common.css?v=3" />
+</head>
+<body>
+  <header class="topbar">
+    <strong>UART 时序</strong>
+    <nav>
+      <a href="index.html">演示索引</a>
+      <a href="/pages/blog/2026-10-20-UART串口.html">博客文章</a>
+    </nav>
+  </header>
+  <main class="wrap">
+    <div class="hero">
+      <h1>UART 8N1 · 0x35</h1>
+      <p class="lead">LSB first。空闲高，起始为低。点击波形暂停。</p>
+    </div>
+    <section>
+      <div class="wave-box">
+        <canvas></canvas>
+        <script type="application/json" class="wave-spec">
+        {
+          "title": "UART 8N1 发送 0x35，LSB first",
+          "labels": ["TX"],
+          "waves": ["1110101011001111"],
+          "markers": [{"at": 3, "text": "起始"}, {"at": 4, "text": "b0"}, {"at": 12, "text": "停止"}],
+          "stepMs": 320
+        }
+        </script>
+      </div>
+    </section>
+  </main>
+  <script src="assets/common.js?v=3"></script>
+  <script src="assets/embed.js?v=3"></script>
+</body>
+</html>

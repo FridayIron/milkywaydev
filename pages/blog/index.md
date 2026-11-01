@@ -30,7 +30,7 @@
 - [ADC 驱动](/pages/blog/2026-10-21-ADC驱动)
 - [USB 驱动](/pages/blog/2026-10-21-USB驱动)
 - [RTOS 线程与多轴](/pages/blog/2026-10-21-RTOS线程与多轴)
-- [插补与速度规划](/pages/blog/2026-10-21-插补与速度规划)
+- [插补与速度规划](/pages/blog/2026-10-21-插补与速度规划)（[动态演示](/demos/interp-demo.html){target="_blank"}）
 
 - [测试文章](/pages/blog/2026-03-22-测试文章)（示例，可删除）
 

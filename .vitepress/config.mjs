@@ -41,7 +41,8 @@ export default defineConfig({
           { text: '个人项目 · MCU 上下文切换', link: '/pages/skill-tools-mcu-core' },
           { text: '个人项目 · 步进电机图表版', link: '/pages/skill-tools-step-motor-view' },
           { text: '个人项目 · 步进电机高级版', link: '/pages/skill-tools-step-motor' },
-          { text: '个人项目 · IVD Agent（本地）', link: 'http://127.0.0.1:8000/' },
+          { text: '个人项目 · 日月AI（外壳入口）', link: '/pages/riyue' },
+          { text: '个人项目 · 日月AI（同域 /riyue/）', link: '/riyue/' },
         ],
       },
       { text: '生活记录', link: '/pages/life' },
@@ -60,7 +61,7 @@ export default defineConfig({
           { text: '文章列表', link: '/pages/blog/' },
           {
             text: '软件版本管理',
-            collapsed: false,
+            collapsed: true,
             items: [
               { text: 'GitLab 部署与配置指南', link: '/pages/blog/2026-10-14-内网GitLab-CE部署与配置指南' },
               { text: 'GitLab 部署操作命令手册', link: '/pages/blog/2026-10-14-GitLab本地部署操作命令手册' },
@@ -102,16 +103,16 @@ export default defineConfig({
       {
         text: '技能星图',
         link: '/pages/skill',
-        collapsed: false,
+        collapsed: true,
         items: [
           { text: '技能雷达图', link: '/pages/skill' },
-          /* 单层下拉，避免嵌套菜单在部分 CDN/缓存下不更新或交互异常 */
           { text: '个人项目 · 工具列表', link: '/pages/skill-tools' },
           { text: '个人项目 · SVG 转换', link: '/pages/skill-tools-svg' },
           { text: '个人项目 · MCU 上下文切换', link: '/pages/skill-tools-mcu-core' },
           { text: '个人项目 · 步进电机图表版', link: '/pages/skill-tools-step-motor-view' },
           { text: '个人项目 · 步进电机高级版', link: '/pages/skill-tools-step-motor' },
-          { text: '个人项目 · IVD Agent（本地）', link: 'http://127.0.0.1:8000/' },
+          { text: '个人项目 · 日月AI（外壳入口）', link: '/pages/riyue' },
+          { text: '个人项目 · 日月AI（同域 /riyue/）', link: '/riyue/' },
         ],
       },
       { text: '生活记录', link: '/pages/life', items: [] },
@@ -119,10 +120,63 @@ export default defineConfig({
     socialLinks: [],
   },
   vite: {
+    plugins: [
+      {
+        // /riyue 无尾斜杠时相对 js/css 会落到博客根路径，登录页脚本全挂
+        name: 'riyue-trailing-slash',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url === '/riyue' || req.url === '/riyue?') {
+              res.statusCode = 302
+              res.setHeader('Location', '/riyue/')
+              res.end()
+              return
+            }
+            next()
+          })
+        },
+        configurePreviewServer(server) {
+          server.middlewares.use((req, res, next) => {
+            if (req.url === '/riyue' || req.url === '/riyue?') {
+              res.statusCode = 302
+              res.setHeader('Location', '/riyue/')
+              res.end()
+              return
+            }
+            next()
+          })
+        },
+      },
+    ],
     server: {
       watch: {
         // 开发服务不要盯着成品目录，否则 Windows 上 deploy 删除 docs 会 EPERM
         ignored: ['**/docs/**', '**/.vitepress/dist/**', '**/.vitepress/cache/**'],
+      },
+      // 本机同域结合：博客 → /riyue/ → 日月 uvicorn（须先 start.bat）
+      proxy: {
+        '/riyue': {
+          target: 'http://127.0.0.1:18765',
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => {
+            const rest = path.replace(/^\/riyue/, '')
+            return rest.length ? rest : '/'
+          },
+        },
+      },
+    },
+    preview: {
+      proxy: {
+        '/riyue': {
+          target: 'http://127.0.0.1:18765',
+          changeOrigin: true,
+          ws: true,
+          rewrite: (path) => {
+            const rest = path.replace(/^\/riyue/, '')
+            return rest.length ? rest : '/'
+          },
+        },
       },
     },
     resolve: {

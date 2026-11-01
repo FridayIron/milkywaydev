@@ -71,9 +71,8 @@
 - Pingcode 项目管理工具
 - 技术写作：VitePress 博客与操作/培训手册
 
-## 12. 后端与内网 Agent
+## 12. 后端与日月AI
 
-- **Web**：Python · FastAPI · Uvicorn；静态 HTML/CSS/JS 同端口托管
-- **数据**：SQLite；本地文件与备份策略
-- **AI 应用**：TF-IDF RAG · OpenAI 兼容 LLM（可私有化 / mock）
-- **平台能力**：多角色权限、多账号/SSO、知识库分类、问答/故障/评审/报告 Agent
+- **Web**：Python · FastAPI · Uvicorn；静态 HUD 同端口托管
+- **数据**：租户分域 `data/{account_id}/`；与博客仓物理隔离
+- **能力**：OTP/JWT · 记忆 · 私有 RAG · MCP 工具闸 · 博客同域 `/riyue/`

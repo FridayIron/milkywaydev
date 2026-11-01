@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>日月AI · milkywaydev.cn</title>
+  <meta name="description" content="短域名入口：自动跳转到当前公网日月服务" />
+  <style>
+    :root {
+      --bg0: #070b14;
+      --bg1: #10182a;
+      --text: #e8eefc;
+      --muted: #93a0b8;
+      --line: rgba(120, 160, 220, 0.28);
+      --accent: #6eb6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 12% -10%, rgba(70, 130, 220, 0.22), transparent 60%),
+        radial-gradient(700px 380px at 90% 10%, rgba(40, 90, 160, 0.18), transparent 55%),
+        linear-gradient(165deg, var(--bg0), var(--bg1));
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+    }
+    main {
+      width: min(32rem, 100%);
+      border: 1px solid var(--line);
+      padding: 1.6rem 1.4rem 1.35rem;
+      background: rgba(10, 16, 28, 0.55);
+      backdrop-filter: blur(8px);
+    }
+    .brand {
+      letter-spacing: 0.22em;
+      font-size: 0.78rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin: 0 0 0.55rem;
+    }
+    h1 {
+      margin: 0 0 0.55rem;
+      font-size: 1.55rem;
+      font-weight: 650;
+    }
+    p { margin: 0 0 0.85rem; color: var(--muted); line-height: 1.55; font-size: 0.95rem; }
+    .status {
+      margin: 1rem 0 0.35rem;
+      font-size: 0.88rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
+    a.btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 0.62rem 1.05rem;
+      border: 1px solid rgba(110, 182, 255, 0.5);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    a.btn.ghost {
+      border-color: rgba(148, 163, 184, 0.4);
+      color: var(--muted);
+      font-weight: 500;
+    }
+    a.btn:hover { background: rgba(110, 182, 255, 0.1); }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="brand">milkywaydev.cn / riyue</p>
+    <h1>日月AI</h1>
+    <p>正在打开短域名入口。若数秒内未跳转，请点下方按钮，或改用板上局域网地址。</p>
+    <p class="status" id="status">读取公网地址…</p>
+    <div class="actions">
+      <a class="btn" id="go" href="#">进入日月</a>
+      <a class="btn ghost" href="http://192.168.137.2/riyue/">板上局域网</a>
+      <a class="btn ghost" href="/pages/riyue">外壳说明</a>
+    </div>
+  </main>
+  <script>
+    (function () {
+      var statusEl = document.getElementById('status')
+      var goEl = document.getElementById('go')
+      var fallback = 'https://prix-projector-degree-davidson.trycloudflare.com/riyue/'
+
+      function go(url, auto) {
+        goEl.href = url
+        statusEl.textContent = auto ? ('即将跳转：' + url) : ('入口：' + url)
+        if (auto) {
+          setTimeout(function () { location.replace(url) }, 400)
+        }
+      }
+
+      go(fallback, false)
+
+      fetch('/riyue/tunnel.json?t=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject() })
+        .then(function (j) {
+          var base = (j && j.base ? String(j.base) : '').replace(/\/$/, '')
+          var path = (j && j.path ? String(j.path) : '/riyue/')
+          if (!path.startsWith('/')) path = '/' + path
+          if (!base) throw new Error('empty base')
+          go(base + path, true)
+        })
+        .catch(function () {
+          go(fallback, true)
+        })
+    })()
+  </script>
+</body>
+</html>

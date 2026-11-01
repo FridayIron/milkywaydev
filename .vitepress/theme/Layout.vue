@@ -48,50 +48,50 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="custom-layout" :class="{ 'layout-home': isHome, 'layout-page-light': !isHome }">
-    <VisitorTracker />
-    <ClientOnly>
-      <div v-if="isHome" class="cosmic-wrapper" aria-hidden="true">
-        <CosmicBackground />
-      </div>
-    </ClientOnly>
-    <div class="layout-content" :class="{ 'layout-home-content': isHome }">
-      <VPLayout>
-        <template v-for="(_, name) in $slots" #[name]="slotData">
-          <slot :name="name" v-bind="slotData" />
-        </template>
-        <template v-if="isHome" #home-hero-before>
-          <PortalHub />
-        </template>
-      </VPLayout>
-    </div>
-  </div>
+  <!-- 直接使用默认 Layout，避免外包一层 div 导致 lean 水合错位清空正文 -->
+  <VPLayout
+    class="custom-layout"
+    :class="{ 'layout-home': isHome, 'layout-page-light': !isHome }"
+  >
+    <template v-for="(_, name) in $slots" #[name]="slotData">
+      <slot :name="name" v-bind="slotData" />
+    </template>
+    <template v-if="isHome" #home-hero-before>
+      <PortalHub />
+    </template>
+    <template #layout-bottom>
+      <ClientOnly>
+        <VisitorTracker />
+        <div v-if="isHome" class="cosmic-wrapper" aria-hidden="true">
+          <CosmicBackground />
+        </div>
+      </ClientOnly>
+    </template>
+  </VPLayout>
 </template>
 
 <style>
 .cosmic-wrapper {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   overflow: hidden;
 }
 
-.layout-home-content {
-  position: relative;
-  z-index: 1;
-}
-
-/* ===== 门户页：星空底 + Agent 式入口 ===== */
 .layout-home {
   min-height: 100vh;
   background: #0f0f28 !important;
+  position: relative;
+  z-index: 0;
 }
 
-.layout-home .layout-content {
+/* 门户内容必须压在星空之上，并出现在首屏 */
+.layout-home .VPContent,
+.layout-home .VPContent.is-home,
+.layout-home .VPHome {
   position: relative;
-  z-index: 1;
-  background: transparent !important;
+  z-index: 2;
 }
 
 .layout-home .VPNav,
@@ -152,7 +152,6 @@ html.vp-home-cosmic .VPMenu a:hover {
   background: transparent !important;
 }
 
-/* 避开固定导航栏遮挡 */
 .layout-home .VPContent,
 .layout-home .VPContent.is-home {
   padding-top: var(--vp-nav-height, 64px) !important;

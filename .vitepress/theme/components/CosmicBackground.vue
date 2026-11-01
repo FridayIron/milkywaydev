@@ -13,13 +13,14 @@ const PARTICLE_COUNT = 200
 const ION_COUNT = 35
 const METEOR_COUNT = 4
 
+/* 偏右、缩小：给左侧门户文案留空，避免首屏被星球占满 */
 const PLANET_CONFIG = [
-  { orbitRadius: 170, orbitSpeed: 0.0018, radius: 48, colors: ['#7dd3fc', '#60a5fa', '#2563eb'], rotSpeed: 0.018 },
-  { orbitRadius: 250, orbitSpeed: 0.0011, radius: 30, colors: ['#a78bfa', '#8b5cf6', '#5b21b6'], rotSpeed: 0.014 },
-  { orbitRadius: 320, orbitSpeed: 0.00075, radius: 58, colors: ['#60a5fa', '#34d399', '#16a34a'], rotSpeed: 0.02 },
-  { orbitRadius: 135, orbitSpeed: 0.0026, radius: 24, colors: ['#fb7185', '#f43f5e', '#be123c'], rotSpeed: 0.026 },
-  { orbitRadius: 385, orbitSpeed: 0.00052, radius: 38, colors: ['#34d399', '#22c55e', '#16a34a'], rotSpeed: 0.012 },
-  { orbitRadius: 95, orbitSpeed: 0.0038, radius: 20, colors: ['#fbbf24', '#f59e0b', '#b45309'], rotSpeed: 0.03 },
+  { orbitRadius: 110, orbitSpeed: 0.0018, radius: 28, colors: ['#7dd3fc', '#60a5fa', '#2563eb'], rotSpeed: 0.018 },
+  { orbitRadius: 160, orbitSpeed: 0.0011, radius: 18, colors: ['#a78bfa', '#8b5cf6', '#5b21b6'], rotSpeed: 0.014 },
+  { orbitRadius: 200, orbitSpeed: 0.00075, radius: 34, colors: ['#60a5fa', '#34d399', '#16a34a'], rotSpeed: 0.02 },
+  { orbitRadius: 85, orbitSpeed: 0.0026, radius: 14, colors: ['#fb7185', '#f43f5e', '#be123c'], rotSpeed: 0.026 },
+  { orbitRadius: 240, orbitSpeed: 0.00052, radius: 22, colors: ['#34d399', '#22c55e', '#16a34a'], rotSpeed: 0.012 },
+  { orbitRadius: 60, orbitSpeed: 0.0038, radius: 12, colors: ['#fbbf24', '#f59e0b', '#b45309'], rotSpeed: 0.03 },
 ]
 
 function initParticles(w, h) {
@@ -328,9 +329,9 @@ onUnmounted(() => {
   width: 100vw;
   height: 100vh;
   display: block;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
-  opacity: 1;
+  opacity: 0.55;
   mix-blend-mode: normal;
   border: none;
 }
