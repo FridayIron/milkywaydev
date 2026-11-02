@@ -88,7 +88,8 @@
     (function () {
       var statusEl = document.getElementById('status')
       var goEl = document.getElementById('go')
-      var fallback = 'https://prix-projector-degree-davidson.trycloudflare.com/riyue/'
+      var lan = 'http://192.168.137.2/riyue/'
+      var fallback = 'https://showtimes-horse-threaded-subjective.trycloudflare.com/riyue/'
 
       function go(url, auto) {
         goEl.href = url
@@ -110,7 +111,13 @@
           go(base + path, true)
         })
         .catch(function () {
-          go(fallback, true)
+          // 公网 JSON 失败时：同网段优先局域网，否则用内置临时隧道
+          var host = location.hostname || ''
+          if (host === '192.168.137.1' || host.indexOf('192.168.') === 0 || host === 'localhost') {
+            go(lan, true)
+          } else {
+            go(fallback, true)
+          }
         })
     })()
   </script>

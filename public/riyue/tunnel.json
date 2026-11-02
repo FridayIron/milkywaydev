@@ -1,6 +1,6 @@
 {
-  "base": "https://prix-projector-degree-davidson.trycloudflare.com",
+  "base": "https://showtimes-horse-threaded-subjective.trycloudflare.com",
   "path": "/riyue/",
-  "updatedAt": "2026-11-02T01:44:00+08:00",
-  "note": "由 deploy/update-short-entry.ps1 从板上 cloudflared 日志刷新；勿手改长期依赖"
+  "updatedAt": "2026-11-02T22:12:00+08:00",
+  "note": "本机 cloudflared 临时反代板 :80（板端 ICS 断网时使用）"
 }
