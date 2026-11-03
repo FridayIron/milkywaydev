@@ -1,6 +1,6 @@
 {
-  "base": "https://showtimes-horse-threaded-subjective.trycloudflare.com",
+  "base": "https://riyue.milkywaydev.cn",
   "path": "/riyue/",
-  "updatedAt": "2026-11-02T22:12:00+08:00",
-  "note": "本机 cloudflared 临时反代板 :80（板端 ICS 断网时使用）"
+  "updatedAt": "2026-11-03T22:28:00+08:00",
+  "note": "Named Tunnel 固定域名；重启不变"
 }
